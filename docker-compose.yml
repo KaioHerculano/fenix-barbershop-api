@@ -10,6 +10,11 @@ services:
     ports:
       - "5432:5432"
 
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+
   web:
     build: .
     command: sh -c "python manage.py migrate && python manage.py runserver 0.0.0.0:8000"
@@ -21,8 +26,24 @@ services:
       - .env
     environment:
       - POSTGRES_HOST=db
+      - REDIS_URL=redis://redis:6379/0
     depends_on:
       - db
+      - redis
+
+  celery:
+    build: .
+    command: celery -A app worker -l info
+    volumes:
+      - .:/app
+    env_file:
+      - .env
+    environment:
+      - POSTGRES_HOST=db
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - db
+      - redis
 
 volumes:
   postgres_data:
