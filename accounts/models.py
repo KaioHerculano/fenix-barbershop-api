@@ -45,6 +45,14 @@ class User(AbstractBaseUser, PermissionsMixin):
     date_joined = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
+    company = models.ForeignKey(
+        "company.Company",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name="users",
+    )
+
     objects = UserManager()
 
     USERNAME_FIELD = "email"
