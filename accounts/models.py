@@ -35,6 +35,11 @@ class UserManager(BaseUserManager):
 
 
 class User(AbstractBaseUser, PermissionsMixin):
+    class Role(models.TextChoices):
+        OWNER = "OWNER", "Owner"
+        BARBER = "BARBER", "Barber"
+        CUSTOMER = "CUSTOMER", "Customer"
+
     email = models.EmailField(unique=True)
     full_name = models.CharField(max_length=255)
     phone = models.CharField(max_length=20, blank=True, null=True)
@@ -44,14 +49,6 @@ class User(AbstractBaseUser, PermissionsMixin):
 
     date_joined = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-
-    company = models.ForeignKey(
-        "company.Company",
-        on_delete=models.SET_NULL,
-        null=True,
-        blank=True,
-        related_name="users",
-    )
 
     objects = UserManager()
 

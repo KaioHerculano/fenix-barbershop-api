@@ -1,5 +1,7 @@
 from django.db import models
 
+from accounts.models import User
+
 
 class Company(models.Model):
     name = models.CharField(max_length=255)
@@ -16,3 +18,20 @@ class Company(models.Model):
 
     def __str__(self):
         return self.name
+
+
+class CompanyEmployee(models.Model):
+    user = models.ForeignKey(
+        "accounts.User",
+        on_delete=models.CASCADE,
+    )
+    company = models.ForeignKey(
+        "company.Company",
+        on_delete=models.CASCADE,
+    )
+    role = models.CharField(max_length=20, choices=User.Role.choices)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ("user", "company")
