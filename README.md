@@ -39,6 +39,7 @@ O Fênix BarberShop é um sistema completo para gestão de barbearias, incluindo
 .
 ├── app/
 ├── accounts/
+├── company/
 ├── barbers/
 ├── services/
 ├── scheduling/
@@ -53,12 +54,36 @@ O Fênix BarberShop é um sistema completo para gestão de barbearias, incluindo
 
 ---
 
-## 🔐 Autenticação
+## 🔐 Autenticação & SaaS
 
-O sistema utiliza **Custom User Model** com:
+O sistema utiliza **Custom User Model** e arquitetura **Multi-tenancy**:
 
 - Login via email
-- Estrutura preparada para expansão
+- Estrutura de vínculos (CompanyEmployee) para múltiplos papéis em diferentes barbearias.
+
+---
+
+## 📡 API Endpoints (v1)
+
+### Accounts
+| Método | Endpoint | Descrição | Acesso |
+| :--- | :--- | :--- | :--- |
+| `POST` | `/api/v1/accounts/register/owner/` | Cadastro de novo dono + empresa | Público |
+
+**Exemplo de Payload (`POST`):**
+```json
+{
+  "company_name": "Fênix Barber Gold",
+  "company_slug": "fenix-barber-gold",
+  "full_name": "João da Silva",
+  "email": "joao@email.com",
+  "password": "senha_segura_aqui"
+}
+```
+
+**Respostas:**
+*   **201 Created**: Usuário e Empresa criados com sucesso.
+*   **409 Conflict**: E-mail ou Slug da empresa já estão em uso.
 
 ---
 
@@ -101,9 +126,11 @@ docker-compose up celery
 
 ## 📊 Roadmap
 
-- [x] Custom User Model
+- [x] Custom User Model (Refatorado)
 - [x] Setup Celery + Redis
-- [ ] Autenticação
+- [x] Arquitetura Multi-tenancy (SaaS Foundation)
+- [x] Registro de Owners/Empresas
+- [ ] Autenticação JWT (Login)
 - [ ] Agendamento
 - [ ] Pagamentos
 - [ ] Fidelidade
