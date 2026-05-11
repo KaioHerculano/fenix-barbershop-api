@@ -45,6 +45,13 @@ erDiagram
         datetime created_at
     }
 
+    CUSTOMER_PROFILE {
+        uuid id PK
+        fk user_id
+        string phone
+        date birth_date
+    }
+
     COMPANY {
         uuid id PK
         string name
@@ -61,8 +68,91 @@ erDiagram
         string role
         boolean is_active
     }
+
+    SERVICE {
+        uuid id PK
+        fk company_id
+        string name
+        decimal price
+        int duration_minutes
+        boolean is_active
+    }
+
+    BARBER_SCHEDULE {
+        uuid id PK
+        fk company_employee_id
+        fk company_id
+        int week_day
+        time start_time
+        time end_time
+        boolean is_available
+    }
+
+    APPOINTMENT {
+        uuid id PK
+        fk company_id
+        fk customer_id
+        fk barber_id
+        datetime start_at
+        datetime end_at
+        string status
+        text notes
+        datetime created_at
+    }
+
+    APPOINTMENT_SERVICE {
+        uuid id PK
+        fk appointment_id
+        fk service_id
+        decimal price_snapshot
+        int duration_snapshot
+    }
+
+    PAYMENT {
+        uuid id PK
+        fk company_id
+        fk appointment_id
+        decimal amount
+        string provider
+        string payment_method
+        string status
+        string external_id
+        string idempotency_key
+        datetime paid_at
+    }
+
+    PAYMENT_EVENT {
+        uuid id PK
+        fk payment_id
+        string event_type
+        json payload
+        datetime created_at
+    }
+
+    LOYALTY_ACCOUNT {
+        uuid id PK
+        fk user_id
+        fk company_id
+        int points
+    }
+
+    LOYALTY_TRANSACTION {
+        uuid id PK
+        fk loyalty_account_id
+        string type
+        int points
+        text description
+        datetime created_at
+    }
+
+    NOTIFICATION {
+        uuid id PK
+        fk appointment_id
+        string type
+        string status
+        datetime sent_at
+    }
 ```
-*(Nota: Para ver o diagrama completo com todas as tabelas e relações, consulte o código DBML gerado para o dbdiagram.io)*
 
 ---
 
@@ -75,7 +165,7 @@ erDiagram
 
 ### 🏢 Gestão de Empresas & Staff
 - **RF04**: Cadastro e edição de barbearias (Tenants).
-- **RF05**: Vínculo de funcionários com papéis específicos (`ADMIN`, `BARBER`, `RECEPTIONIST`).
+- **RF05**: Vínculo de funcionários com papéis específicos (`OWNER`, `BARBER`, `CUSTOMER`).
 - **RF06**: Controle de permissões e isolamento total entre empresas.
 
 ### ✂️ Serviços & Agenda
