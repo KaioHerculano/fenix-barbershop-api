@@ -10,6 +10,10 @@ API do sistema de gestão da **Fênix BarberShop**, desenvolvido com Django, foc
 
 O Fênix BarberShop é um sistema completo para gestão de barbearias, incluindo:
 
+![Diagrama de Arquitetura](docs/architecture_diagram.png)
+
+> 🏛️ **Confira a [Especificação Arquitetural Completa](ARCHITECTURE.md)**
+
 - 👤 Autenticação de usuários
 - 📅 Agendamento de serviços
 - 💳 Pagamentos via Pix
