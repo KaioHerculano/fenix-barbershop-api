@@ -1,9 +1,12 @@
+import uuid
+
 from django.db import models
 
 from accounts.models import User
 
 
 class Company(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     name = models.CharField(max_length=255)
     slug = models.SlugField(unique=True, max_length=100)
     address = models.CharField(max_length=255, blank=True, null=True)
@@ -21,6 +24,7 @@ class Company(models.Model):
 
 
 class CompanyEmployee(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(
         "accounts.User",
         on_delete=models.CASCADE,
