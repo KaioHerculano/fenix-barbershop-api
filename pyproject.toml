@@ -1,6 +1,6 @@
 [project]
 name = "fenix-barbershop-backend"
-version = "0.1.0"
+version = "0.2.0"
 description = ""
 authors = [
     {name = "Kaio Herculano",email = "kaioherculano12@gmail.com"}
