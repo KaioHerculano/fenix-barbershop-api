@@ -73,6 +73,8 @@ O sistema utiliza **Custom User Model** e arquitetura **Multi-tenancy**:
 | Método | Endpoint | Descrição | Acesso |
 | :--- | :--- | :--- | :--- |
 | `POST` | `/api/v1/accounts/register/owner/` | Cadastro de novo dono + empresa | Público |
+| `POST` | `/api/v1/accounts/login/` | Obter Tokens JWT de Autenticação | Público |
+| `POST` | `/api/v1/accounts/token/refresh/` | Gerar novo Access Token (Refresh) | Público |
 
 **Exemplo de Payload (`POST`):**
 ```json
@@ -134,7 +136,8 @@ docker-compose up celery
 - [x] Setup Celery + Redis
 - [x] Arquitetura Multi-tenancy (SaaS Foundation)
 - [x] Registro de Owners/Empresas
-- [ ] Autenticação JWT (Login)
+- [x] Autenticação JWT (Login e Refresh)
+- [x] Documentação OpenAPI Automática (Swagger/ReDoc)
 - [ ] Agendamento
 - [ ] Pagamentos
 - [ ] Fidelidade
