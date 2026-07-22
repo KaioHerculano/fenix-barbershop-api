@@ -12,6 +12,6 @@ class CompanyAdmin(admin.ModelAdmin):
 
 @admin.register(CompanyEmployee)
 class CompanyEmployeeAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "company", "role", "created_at")
+    list_display = ("id", "user", "company", "role", "is_active", "created_at")
     search_fields = ("user__email", "company__name")
-    list_filter = ("role",)
+    list_filter = ("company", "role", "is_active")

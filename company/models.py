@@ -34,8 +34,12 @@ class CompanyEmployee(models.Model):
         on_delete=models.CASCADE,
     )
     role = models.CharField(max_length=20, choices=User.Role.choices)
+    is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         unique_together = ("user", "company")
+
+    def __str__(self):
+        return f"{self.user.full_name} - {self.company.name}"

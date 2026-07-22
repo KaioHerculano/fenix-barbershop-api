@@ -12,7 +12,7 @@ help:
 	@echo "  migrations     - Cria migrações (uso: make migrations APP=nome)"
 	@echo "  shell          - Abre o shell do Django"
 	@echo "  format         - Roda black e isort"
-	@echo "  lint           - Roda ruff"
+	@echo "  lint           - Roda flake8"
 	@echo "  test           - Roda todos os testes"
 	@echo "  test-coverage  - Relatório de cobertura"
 	@echo "  clean          - Limpa cache e arquivos .pyc"
@@ -43,7 +43,7 @@ format:
 	isort .
 
 lint:
-	ruff check .
+	poetry run flake8 .
 
 test:
 	$(MANAGE) test -v 2
