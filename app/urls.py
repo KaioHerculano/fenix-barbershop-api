@@ -1,12 +1,17 @@
 from django.contrib import admin
 from django.urls import include, path
-from drf_spectacular.views import (SpectacularAPIView, SpectacularRedocView,
-                                   SpectacularSwaggerView)
+from drf_spectacular.views import (
+    SpectacularAPIView,
+    SpectacularRedocView,
+    SpectacularSwaggerView,
+)
 
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("accounts.urls")),
-    # Documentação OpenAPI (Swagger/ReDoc)
+    path("", include("services.urls")),
+    path("", include("barbers.urls")),
+    path("", include("scheduling.urls")),
     path("api/schema/", SpectacularAPIView.as_view(), name="schema"),
     path(
         "api/schema/swagger-ui/",
