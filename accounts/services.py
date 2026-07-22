@@ -20,7 +20,6 @@ class CustomerRegistrationService:
                 password=password,
                 phone=phone,
             )
-            # Cria o perfil de cliente e atrela ao usuário (gatilho disparado)
             CustomerProfile.objects.create(user=user)
             return user
 
@@ -33,10 +32,9 @@ class PasswordResetService:
             token = default_token_generator.make_token(user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
 
-            # Simulando envio de e-mail (Log e Console)
             msg = (
                 f"\n=== PASSWORD RESET REQUESTED ===\n"
-                f"Usuário: {email}\n"
+                f"Usuario: {email}\n"
                 f"Link simulado: http://localhost:8000/reset?uid={uid}&token={token}\n"
                 f"UID: {uid}\n"
                 f"TOKEN: {token}\n"
@@ -45,7 +43,6 @@ class PasswordResetService:
             logger.info(msg)
             print(msg)
 
-        # Proteção contra enumeração: Retorna vazio mesmo se não achar
         return None
 
     @staticmethod
