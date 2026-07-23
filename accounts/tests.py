@@ -1,3 +1,5 @@
+from unittest.mock import patch
+
 from django.contrib.auth.tokens import default_token_generator
 from django.core.exceptions import ValidationError
 from django.test import TestCase
@@ -123,22 +125,30 @@ class ComplexPasswordValidatorTests(TestCase):
 class AccountServiceTests(TestCase):
     def setUp(self):
         self.fake = FakeData()
+        self.welcome_task = patch("accounts.services.send_welcome_email.delay").start()
+        self.reset_task = patch(
+            "accounts.services.send_password_reset_email.delay"
+        ).start()
+        self.addCleanup(patch.stopall)
 
     def test_customer_registration_service_creates_user_and_profile(self):
-        user = CustomerRegistrationService.register_customer(
-            email=self.fake.email(),
-            full_name="Cliente Serviço",
-            phone="65999999999",
-            password=self.fake.password(),
-        )
+        with self.captureOnCommitCallbacks(execute=True):
+            user = CustomerRegistrationService.register_customer(
+                email=self.fake.email(),
+                full_name="Cliente Serviço",
+                phone="65999999999",
+                password=self.fake.password(),
+            )
 
         self.assertTrue(CustomerProfile.objects.filter(user=user).exists())
         self.assertEqual(user.phone, "65999999999")
+        self.welcome_task.assert_called_once_with(str(user.id))
 
     def test_password_reset_request_does_not_reveal_missing_user(self):
         result = PasswordResetService.request_reset("missing@example.com")
 
         self.assertIsNone(result)
+        self.reset_task.assert_not_called()
 
     def test_password_reset_confirm_updates_valid_user_password(self):
         user = self.fake.user()
@@ -165,12 +175,18 @@ class AccountServiceTests(TestCase):
 class AccountAPITests(APITestCase):
     def setUp(self):
         self.fake = FakeData()
+        self.welcome_task = patch("accounts.services.send_welcome_email.delay").start()
+        self.reset_task = patch(
+            "accounts.services.send_password_reset_email.delay"
+        ).start()
+        self.addCleanup(patch.stopall)
 
     def test_owner_registration_creates_company_and_owner_link(self):
         payload = self.fake.owner_payload()
         url = reverse("owner_registration")
 
-        response = self.client.post(url, payload, format="json")
+        with self.captureOnCommitCallbacks(execute=True):
+            response = self.client.post(url, payload, format="json")
 
         user = User.objects.get(email=payload["email"])
         company = Company.objects.get(slug=payload["company_slug"])
@@ -207,11 +223,13 @@ class AccountAPITests(APITestCase):
         payload = self.fake.customer_payload()
         url = reverse("customer_registration")
 
-        response = self.client.post(url, payload, format="json")
+        with self.captureOnCommitCallbacks(execute=True):
+            response = self.client.post(url, payload, format="json")
 
         user = User.objects.get(email=payload["email"])
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertTrue(CustomerProfile.objects.filter(user=user).exists())
+        self.welcome_task.assert_called_once_with(str(user.id))
 
     def test_customer_registration_rejects_password_mismatch(self):
         payload = self.fake.customer_payload()
@@ -262,6 +280,7 @@ class AccountAPITests(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.reset_task.assert_called_once()
 
     def test_password_reset_request_rejects_invalid_email(self):
         response = self.client.post(
