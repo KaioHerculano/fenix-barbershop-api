@@ -1,6 +1,7 @@
 import os
 
 from django.conf import settings
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from company.models import StaffInvitation
@@ -56,11 +57,13 @@ class StaffInvitationSerializer(serializers.ModelSerializer):
             "dev_invitation_url",
         ]
 
+    @extend_schema_field(serializers.ListField(child=serializers.DictField()))
     def get_services(self, obj):
         return [
             {"id": service.id, "name": service.name} for service in obj.services.all()
         ]
 
+    @extend_schema_field(serializers.CharField(allow_null=True))
     def get_dev_invitation_url(self, obj):
         token = getattr(obj, "raw_token", None)
         if not settings.DEBUG or os.getenv("RESEND_API_KEY") or not token:

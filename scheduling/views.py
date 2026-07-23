@@ -129,6 +129,7 @@ class AppointmentDetailView(RetrieveAPIView):
 
 
 class AppointmentCancelView(APIView):
+    serializer_class = AppointmentSerializer
     permission_classes = [IsAuthenticated]
 
     def get_appointment(self, company_slug, appointment_id):

@@ -9,7 +9,7 @@ from scheduling.serializers import (
 
 company_slug_parameter = OpenApiParameter(
     name="company_slug",
-    description="Slug público da barbearia.",
+    description="Slug publico da barbearia.",
     required=True,
     type=str,
     location=OpenApiParameter.PATH,
@@ -24,13 +24,31 @@ appointment_id_parameter = OpenApiParameter(
 )
 
 availability_schema = extend_schema(
-    summary="Listar horários disponíveis",
-    description="Retorna os horários disponíveis para serviço, barbeiro e data informados.",
+    summary="Listar horarios disponiveis",
+    description="Retorna horarios disponiveis para servico, barbeiro e data informados.",
     parameters=[
         company_slug_parameter,
-        OpenApiParameter("date", str, OpenApiParameter.QUERY, required=True),
-        OpenApiParameter("barber_id", str, OpenApiParameter.QUERY, required=True),
-        OpenApiParameter("service_id", str, OpenApiParameter.QUERY, required=True),
+        OpenApiParameter(
+            "date",
+            str,
+            OpenApiParameter.QUERY,
+            required=True,
+            description="Data desejada no formato YYYY-MM-DD.",
+        ),
+        OpenApiParameter(
+            "barber_id",
+            str,
+            OpenApiParameter.QUERY,
+            required=True,
+            description="ID do barbeiro que executara o servico.",
+        ),
+        OpenApiParameter(
+            "service_id",
+            str,
+            OpenApiParameter.QUERY,
+            required=True,
+            description="ID do servico desejado.",
+        ),
     ],
     responses={200: AvailabilitySlotSerializer(many=True), 400: None, 404: None},
     auth=[],
@@ -38,7 +56,7 @@ availability_schema = extend_schema(
 
 appointment_create_list_schema = extend_schema(
     summary="Listar ou criar meus agendamentos",
-    description="Lista os agendamentos do usuário autenticado ou cria um novo agendamento confirmado.",
+    description="Lista agendamentos do usuario autenticado ou cria um novo agendamento confirmado.",
     parameters=[company_slug_parameter],
     request=AppointmentCreateSerializer,
     responses={200: AppointmentSerializer(many=True), 201: AppointmentSerializer},
@@ -50,7 +68,7 @@ appointment_create_list_schema = extend_schema(
                 "barber_id": "00000000-0000-0000-0000-000000000000",
                 "appointment_date": "2026-07-23",
                 "start_time": "09:00",
-                "notes": "Cliente prefere atendimento rápido.",
+                "notes": "Cliente prefere atendimento rapido.",
             },
             request_only=True,
         )
@@ -59,14 +77,14 @@ appointment_create_list_schema = extend_schema(
 
 appointment_detail_schema = extend_schema(
     summary="Detalhar meu agendamento",
-    description="Retorna um agendamento do usuário autenticado.",
+    description="Retorna um agendamento do usuario autenticado.",
     parameters=[company_slug_parameter, appointment_id_parameter],
     responses={200: AppointmentSerializer, 404: None},
 )
 
 appointment_cancel_schema = extend_schema(
     summary="Cancelar meu agendamento",
-    description="Cancela um agendamento do usuário autenticado quando o status permite.",
+    description="Cancela um agendamento do usuario autenticado quando o status permite.",
     parameters=[company_slug_parameter, appointment_id_parameter],
     responses={200: AppointmentSerializer, 400: None, 404: None},
 )
@@ -77,4 +95,14 @@ appointment_reschedule_schema = extend_schema(
     parameters=[company_slug_parameter, appointment_id_parameter],
     request=AppointmentRescheduleSerializer,
     responses={200: AppointmentSerializer, 400: None, 404: None},
+    examples=[
+        OpenApiExample(
+            "Reagendar",
+            value={
+                "appointment_date": "2026-07-24",
+                "start_time": "10:30",
+            },
+            request_only=True,
+        )
+    ],
 )
