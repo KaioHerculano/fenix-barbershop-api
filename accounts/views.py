@@ -2,18 +2,38 @@ from rest_framework import status
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 
-from accounts.serializers import (CustomerRegistrationSerializer,
-                                  OwnerRegistrationSerializer,
-                                  PasswordResetConfirmSerializer,
-                                  PasswordResetRequestSerializer,
-                                  UserMeSerializer, UserMeUpdateSerializer)
+from accounts.serializers import (
+    CustomerRegistrationSerializer,
+    OwnerRegistrationSerializer,
+    PasswordResetConfirmSerializer,
+    PasswordResetRequestSerializer,
+    UserMeSerializer,
+    UserMeUpdateSerializer,
+)
 from accounts.services import CustomerRegistrationService, PasswordResetService
-from app.schemas.accounts import (customer_registration_schema,
-                                  owner_registration_schema,
-                                  password_reset_confirm_schema,
-                                  password_reset_request_schema,
-                                  user_me_schema)
+from app.schemas.accounts import (
+    customer_registration_schema,
+    owner_registration_schema,
+    password_reset_confirm_schema,
+    password_reset_request_schema,
+    token_obtain_pair_schema,
+    token_refresh_schema,
+    user_me_schema,
+)
+
+
+class LoginView(TokenObtainPairView):
+    @token_obtain_pair_schema
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
+
+
+class TokenRefreshDocumentedView(TokenRefreshView):
+    @token_refresh_schema
+    def post(self, request, *args, **kwargs):
+        return super().post(request, *args, **kwargs)
 
 
 class OwnerRegistrationView(APIView):

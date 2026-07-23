@@ -1,3 +1,4 @@
+from drf_spectacular.utils import extend_schema_field
 from rest_framework import serializers
 
 from company.models import CompanyEmployee
@@ -12,6 +13,7 @@ class BarberSerializer(serializers.ModelSerializer):
         model = CompanyEmployee
         fields = ["id", "full_name", "services"]
 
+    @extend_schema_field(ServiceSerializer(many=True))
     def get_services(self, obj):
         assignments = obj.barber_services.filter(
             is_active=True,
