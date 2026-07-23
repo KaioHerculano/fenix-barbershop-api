@@ -1,6 +1,10 @@
+import os
+
+from django.conf import settings
 from rest_framework import serializers
 
 from company.models import StaffInvitation
+from notifications.emails import frontend_url
 from services.models import Service
 
 
@@ -33,6 +37,7 @@ class StaffInvitationSerializer(serializers.ModelSerializer):
     services = serializers.SerializerMethodField()
     is_expired = serializers.BooleanField(read_only=True)
     is_accepted = serializers.BooleanField(read_only=True)
+    dev_invitation_url = serializers.SerializerMethodField()
 
     class Meta:
         model = StaffInvitation
@@ -48,12 +53,19 @@ class StaffInvitationSerializer(serializers.ModelSerializer):
             "is_accepted",
             "accepted_at",
             "created_at",
+            "dev_invitation_url",
         ]
 
     def get_services(self, obj):
         return [
             {"id": service.id, "name": service.name} for service in obj.services.all()
         ]
+
+    def get_dev_invitation_url(self, obj):
+        token = getattr(obj, "raw_token", None)
+        if not settings.DEBUG or os.getenv("RESEND_API_KEY") or not token:
+            return None
+        return frontend_url(f"/invitations/{token}")
 
 
 class StaffInvitationAcceptSerializer(serializers.Serializer):

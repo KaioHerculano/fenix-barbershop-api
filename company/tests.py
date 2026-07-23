@@ -2,7 +2,7 @@ from datetime import timedelta
 from decimal import Decimal
 from unittest.mock import patch
 
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
@@ -192,6 +192,11 @@ class StaffInvitationAPITests(APITestCase):
     def accept_url(self, token):
         return reverse("staff-invitation-accept", kwargs={"token": token})
 
+    @override_settings(DEBUG=True)
+    @patch.dict(
+        "os.environ",
+        {"FRONTEND_URL": "http://localhost:3000", "RESEND_API_KEY": ""},
+    )
     def test_owner_creates_staff_invitation(self):
         self.client.force_authenticate(user=self.owner)
 
@@ -208,7 +213,35 @@ class StaffInvitationAPITests(APITestCase):
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         self.assertNotIn("token_digest", response.data)
+        self.assertTrue(
+            response.data["dev_invitation_url"].startswith(
+                "http://localhost:3000/invitations/"
+            )
+        )
         self.invitation_task.assert_called_once()
+
+    @override_settings(DEBUG=True)
+    @patch.dict(
+        "os.environ",
+        {"FRONTEND_URL": "http://localhost:3000", "RESEND_API_KEY": "secret"},
+    )
+    def test_owner_create_invitation_hides_dev_url_when_email_provider_is_configured(
+        self,
+    ):
+        self.client.force_authenticate(user=self.owner)
+
+        with self.captureOnCommitCallbacks(execute=True):
+            response = self.client.post(
+                self.create_url(),
+                {
+                    "email": self.fake.email(),
+                    "service_ids": [str(self.service.id)],
+                },
+                format="json",
+            )
+
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertIsNone(response.data["dev_invitation_url"])
 
     def test_non_owner_cannot_create_staff_invitation(self):
         self.client.force_authenticate(user=self.fake.user())
