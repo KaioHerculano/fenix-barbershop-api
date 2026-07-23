@@ -3,6 +3,10 @@ from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
 from company.models import CompanyEmployee
+from notifications.tasks import (
+    send_appointment_cancelled_email,
+    send_appointment_confirmation_email,
+)
 from scheduling.models import Appointment
 from scheduling.selectors import (
     get_active_barber,
@@ -26,7 +30,7 @@ def create_appointment(company_slug, customer, data):
             data["appointment_date"],
             data["start_time"],
         )
-        return Appointment.objects.create(
+        appointment = Appointment.objects.create(
             company=company,
             customer=customer,
             barber=barber,
@@ -37,6 +41,10 @@ def create_appointment(company_slug, customer, data):
             status=Appointment.Status.CONFIRMED,
             notes=data.get("notes", ""),
         )
+        transaction.on_commit(
+            lambda: send_appointment_confirmation_email.delay(str(appointment.id))
+        )
+        return appointment
 
 
 def cancel_appointment(appointment):
@@ -54,6 +62,7 @@ def cancel_appointment(appointment):
     appointment.status = Appointment.Status.CANCELLED
     appointment.cancelled_at = timezone.now()
     appointment.save(update_fields=["status", "cancelled_at", "updated_at"])
+    send_appointment_cancelled_email.delay(str(appointment.id))
     return appointment
 
 

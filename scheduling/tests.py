@@ -1,5 +1,6 @@
 from datetime import date, time, timedelta
 from decimal import Decimal
+from unittest.mock import patch
 
 from django.core.exceptions import ValidationError as DjangoValidationError
 from django.test import TestCase
@@ -156,6 +157,13 @@ class WorkingHourModelTests(TestCase):
 class AppointmentServiceTests(TestCase):
     def setUp(self):
         self.fake = FakeData()
+        self.confirmation_task = patch(
+            "scheduling.services.send_appointment_confirmation_email.delay"
+        ).start()
+        self.cancelled_task = patch(
+            "scheduling.services.send_appointment_cancelled_email.delay"
+        ).start()
+        self.addCleanup(patch.stopall)
         self.company = self.fake.company()
         self.customer = self.fake.user()
         self.barber = self.fake.barber(self.company)
@@ -165,20 +173,22 @@ class AppointmentServiceTests(TestCase):
         self.fake.working_hour(self.company, self.appointment_date)
 
     def test_create_appointment_calculates_end_time(self):
-        appointment = create_appointment(
-            self.company.slug,
-            self.customer,
-            {
-                "service_id": self.service.id,
-                "barber_id": self.barber.id,
-                "appointment_date": self.appointment_date,
-                "start_time": time(9, 0),
-                "notes": "Sem preferencias",
-            },
-        )
+        with self.captureOnCommitCallbacks(execute=True):
+            appointment = create_appointment(
+                self.company.slug,
+                self.customer,
+                {
+                    "service_id": self.service.id,
+                    "barber_id": self.barber.id,
+                    "appointment_date": self.appointment_date,
+                    "start_time": time(9, 0),
+                    "notes": "Sem preferencias",
+                },
+            )
 
         self.assertEqual(appointment.end_time, time(9, 30))
         self.assertEqual(appointment.status, Appointment.Status.CONFIRMED)
+        self.confirmation_task.assert_called_once_with(str(appointment.id))
 
     def test_rejects_inactive_service(self):
         inactive_service = self.fake.service(self.company, is_active=False)
@@ -363,6 +373,7 @@ class AppointmentServiceTests(TestCase):
         appointment.refresh_from_db()
         self.assertEqual(appointment.status, Appointment.Status.CANCELLED)
         self.assertIsNotNone(appointment.cancelled_at)
+        self.cancelled_task.assert_called_once_with(str(appointment.id))
 
     def test_rejects_repeated_cancellation(self):
         appointment = self.fake.appointment(
@@ -559,6 +570,13 @@ class WorkingHourAPITests(APITestCase):
 class AppointmentAPITests(APITestCase):
     def setUp(self):
         self.fake = FakeData()
+        self.confirmation_task = patch(
+            "scheduling.services.send_appointment_confirmation_email.delay"
+        ).start()
+        self.cancelled_task = patch(
+            "scheduling.services.send_appointment_cancelled_email.delay"
+        ).start()
+        self.addCleanup(patch.stopall)
         self.company = self.fake.company()
         self.customer = self.fake.user(full_name="Cliente Agenda")
         self.other_customer = self.fake.user()
