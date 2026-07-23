@@ -9,6 +9,7 @@ from drf_spectacular.views import (
 urlpatterns = [
     path("admin/", admin.site.urls),
     path("", include("accounts.urls")),
+    path("", include("company.urls")),
     path("", include("services.urls")),
     path("", include("barbers.urls")),
     path("", include("scheduling.urls")),
