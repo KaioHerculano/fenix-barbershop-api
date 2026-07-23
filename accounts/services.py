@@ -1,13 +1,10 @@
-import logging
-
 from django.contrib.auth.tokens import default_token_generator
 from django.db import transaction
 from django.utils.encoding import force_bytes, force_str
 from django.utils.http import urlsafe_base64_decode, urlsafe_base64_encode
 
 from accounts.models import CustomerProfile, User
-
-logger = logging.getLogger(__name__)
+from notifications.tasks import send_password_reset_email, send_welcome_email
 
 
 class CustomerRegistrationService:
@@ -21,6 +18,7 @@ class CustomerRegistrationService:
                 phone=phone,
             )
             CustomerProfile.objects.create(user=user)
+            transaction.on_commit(lambda: send_welcome_email.delay(str(user.id)))
             return user
 
 
@@ -31,17 +29,7 @@ class PasswordResetService:
         if user:
             token = default_token_generator.make_token(user)
             uid = urlsafe_base64_encode(force_bytes(user.pk))
-
-            msg = (
-                f"\n=== PASSWORD RESET REQUESTED ===\n"
-                f"Usuario: {email}\n"
-                f"Link simulado: http://localhost:8000/reset?uid={uid}&token={token}\n"
-                f"UID: {uid}\n"
-                f"TOKEN: {token}\n"
-                f"================================"
-            )
-            logger.info(msg)
-            print(msg)
+            send_password_reset_email.delay(str(user.id), uid, token)
 
         return None
 
