@@ -45,5 +45,14 @@ services:
       - db
       - redis
 
+  docs:
+    build:
+      context: .
+      dockerfile: Dockerfile.mkdocs
+    ports:
+      - "8001:80"
+    depends_on:
+      - web
+
 volumes:
   postgres_data:

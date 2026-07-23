@@ -1,0 +1,16 @@
+FROM python:3.13.9-alpine3.22 AS builder
+
+WORKDIR /app
+COPY requirements_docs.txt .
+
+RUN pip install --requirement requirements_docs.txt
+
+COPY . .
+
+RUN mkdocs build
+
+FROM nginx:1.31.3 AS runtime
+
+COPY --from=builder /app/site /usr/share/nginx/html
+
+CMD ["nginx", "-g", "daemon off;"]
