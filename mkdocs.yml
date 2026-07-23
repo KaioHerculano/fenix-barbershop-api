@@ -1,0 +1,49 @@
+site_name: Fenix BarberShop API
+site_description: Documentacao tecnica da API da Fenix BarberShop.
+site_author: Kaio Herculano
+
+theme:
+  name: material
+  language: pt-BR
+  palette:
+    primary: deep orange
+    accent: teal
+  font:
+    text: Roboto
+    code: Roboto Mono
+  features:
+    - navigation.sections
+    - navigation.instant
+    - navigation.top
+    - content.code.copy
+
+nav:
+  - Inicio: index.md
+  - Visao geral: overview.md
+  - Primeiros passos: getting-started.md
+  - Configuracao: configuration.md
+  - Arquitetura: architecture.md
+  - Autenticacao e seguranca: authentication-security.md
+  - Fluxos principais: workflows.md
+  - API Endpoints: api-endpoints.md
+  - Modelagem atual: domain-model.md
+  - Notificacoes: notifications.md
+  - Docker e operacao local: docker.md
+  - Testes e qualidade: tests.md
+  - Roadmap: roadmap.md
+  - Referencia OpenAPI: openapi.md
+
+plugins:
+  - search
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - md_in_html
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+  - pymdownx.tabbed:
+      alternate_style: true

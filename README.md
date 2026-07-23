@@ -1,168 +1,102 @@
-# 💈 Fênix BarberShop - API
+# Fenix BarberShop API
 
-API do sistema de gestão da **Fênix BarberShop**, desenvolvido com Django, focado em agendamentos, pagamentos, fidelidade e automações.
+Backend da Fenix BarberShop, uma API em Django REST Framework para gestao de barbearias, catalogo publico, barbeiros, agenda, convites e notificacoes transacionais.
 
-> 🚀 Projeto em desenvolvimento — arquitetura pensada para escalar como produto (SaaS) no futuro.
+O projeto esta em desenvolvimento. A documentacao descreve o estado atual da API, sem incluir funcionalidades planejadas como se ja estivessem prontas.
 
----
-
-## 📌 Sobre o Projeto
-
-O Fênix BarberShop é um sistema completo para gestão de barbearias, incluindo:
-
-![Diagrama de Arquitetura](docs/architecture_diagram.png)
-
-> 🏛️ **Confira a [Especificação Arquitetural Completa](ARCHITECTURE.md)**
-
-- 👤 Autenticação de usuários
-- 📅 Agendamento de serviços
-- 💳 Pagamentos via Pix
-- 🎯 Sistema de fidelidade
-- 📩 Notificações e e-mails
-- 🛠 Painel administrativo
-- ⚙️ Processamento assíncrono com Celery
-
----
-
-## 🧱 Tecnologias
+## Stack
 
 - Python 3.13
-- Django
+- Django 6
 - Django REST Framework
 - PostgreSQL
 - Redis
 - Celery
-- Poetry (gerenciamento de dependências)
-- Docker / Docker Compose
+- drf-spectacular
+- MkDocs Material
+- Docker Compose
 
----
+## Subir ambiente local
 
-## 🏗 Estrutura do Projeto
-
-```
-.
-├── app/
-├── accounts/
-├── company/
-├── barbers/
-├── services/
-├── scheduling/
-├── payments/
-├── loyalty/
-├── notifications/
-├── manage.py
-├── pyproject.toml
-├── docker-compose.yml
-└── Dockerfile
+```bash
+docker compose up --build
 ```
 
----
+Servicos principais:
 
-## 🔐 Autenticação & SaaS
+| Servico | URL |
+| --- | --- |
+| API | `http://localhost:8000` |
+| Swagger UI | `http://localhost:8000/api/docs/` |
+| Redoc | `http://localhost:8000/api/redoc/` |
+| OpenAPI JSON | `http://localhost:8000/api/schema/` |
+| MkDocs | `http://localhost:8001` |
 
-O sistema utiliza **Custom User Model** e arquitetura **Multi-tenancy**:
+## Documentacao
 
-- Login via email
-- Estrutura de vínculos (CompanyEmployee) para múltiplos papéis em diferentes barbearias.
+A documentacao principal fica em `docs/` e e servida por MkDocs.
 
----
+Para rodar localmente fora do Docker:
 
-## 📡 API Endpoints (v1)
-
-### Accounts
-| Método | Endpoint | Descrição | Acesso |
-| :--- | :--- | :--- | :--- |
-| `POST` | `/api/v1/accounts/register/owner/` | Cadastro de novo dono + empresa | Público |
-| `POST` | `/api/v1/accounts/login/` | Obter Tokens JWT de Autenticação | Público |
-| `POST` | `/api/v1/accounts/token/refresh/` | Gerar novo Access Token (Refresh) | Público |
-
-**Exemplo de Payload (`POST`):**
-```json
-{
-  "company_name": "Fênix Barber Gold",
-  "company_slug": "fenix-barber-gold",
-  "full_name": "João da Silva",
-  "email": "joao@email.com",
-  "password": "senha_segura_aqui"
-}
+```bash
+pip install -r requirements_docs.txt
+mkdocs serve
 ```
 
-**Respostas:**
-*   **201 Created**: Usuário e Empresa criados com sucesso.
-*   **409 Conflict**: E-mail ou Slug da empresa já estão em uso.
+Para gerar build estatico:
 
----
-
-## ⚙️ Setup do Projeto
-
-### Clonar o repositório
-
-```
-git clone <repo-url>
-cd fenix-barbershop-api
+```bash
+mkdocs build --strict
 ```
 
-### Subir com Docker
+## Testes e qualidade
 
-```
-docker-compose up --build
-```
-
-### Aplicar migrações
-
-```
-docker-compose exec web python manage.py migrate
+```bash
+make lint
+make test-coverage
 ```
 
-### Criar superusuário
+## Modulos
 
-```
-docker-compose exec web python manage.py createsuperuser
-```
+| Modulo | Responsabilidade |
+| --- | --- |
+| `accounts` | Usuarios, cadastro, login JWT, perfil e reset de senha |
+| `company` | Empresas, funcionarios e convites de barbeiro |
+| `services` | Catalogo publico de servicos |
+| `barbers` | Barbeiros publicos e servicos executados |
+| `scheduling` | Horarios, disponibilidade e agendamentos |
+| `notifications` | Conteudo, envio e tasks de e-mail |
+| `payments` | Reservado para pagamentos futuros |
+| `loyalty` | Reservado para fidelidade futura |
 
----
+## Fluxos ja suportados
 
-## 🔄 Celery
+- Cadastro de owner com criacao de empresa.
+- Cadastro de cliente.
+- Login JWT e refresh.
+- Perfil autenticado.
+- Catalogo publico de servicos.
+- Listagem publica de barbeiros.
+- Horarios publicos de funcionamento.
+- Disponibilidade de agenda.
+- Criacao, listagem, detalhe, cancelamento e reagendamento de agendamentos.
+- Convite para usuario se tornar barbeiro.
+- E-mails transacionais via Celery.
 
-```
-docker-compose up celery
-```
+## Variaveis de ambiente
 
----
+Use `.env.example` como referencia para criar `.env`.
 
-## 📊 Roadmap
+Principais variaveis:
 
-- [x] Custom User Model (Refatorado)
-- [x] Setup Celery + Redis
-- [x] Arquitetura Multi-tenancy (SaaS Foundation)
-- [x] Registro de Owners/Empresas
-- [x] Autenticação JWT (Login e Refresh)
-- [x] Documentação OpenAPI Automática (Swagger/ReDoc)
-- [ ] Agendamento
-- [ ] Pagamentos
-- [ ] Fidelidade
-- [ ] Notificações
-
----
-
-## 🚀 Futuro
-
-- SaaS multi-barbearia
-- Dashboard
-- WhatsApp
-- App mobile
-
----
-
-## 🤝 Contribuição
-
-1. Fork
-2. Branch
-3. Commit
-4. PR
-
----
-
-## 📄 Licença
-
-MIT
+- `SECRET_KEY`
+- `DEBUG`
+- `ALLOWED_HOSTS`
+- `POSTGRES_DB`
+- `POSTGRES_USER`
+- `POSTGRES_PASSWORD`
+- `POSTGRES_HOST`
+- `POSTGRES_PORT`
+- `FRONTEND_URL`
+- `RESEND_API_KEY`
+- `RESEND_FROM_EMAIL`
