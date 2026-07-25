@@ -106,3 +106,13 @@ appointment_reschedule_schema = extend_schema(
         )
     ],
 )
+
+appointment_complete_schema = extend_schema(
+    summary="Concluir agendamento",
+    description=(
+        "Marca um agendamento como concluido. Apenas owner da empresa ou barbeiro "
+        "responsavel podem concluir. A conclusao dispara pontos de fidelidade uma unica vez."
+    ),
+    parameters=[company_slug_parameter, appointment_id_parameter],
+    responses={200: AppointmentSerializer, 400: None, 403: None, 404: None},
+)

@@ -1,7 +1,9 @@
 from django.db import transaction
+from django.shortcuts import get_object_or_404
 from django.utils import timezone
-from rest_framework.exceptions import ValidationError
+from rest_framework.exceptions import PermissionDenied, ValidationError
 
+from accounts.models import User
 from company.models import CompanyEmployee
 from notifications.tasks import (
     send_appointment_cancelled_email,
@@ -114,4 +116,59 @@ def reschedule_appointment(appointment, data):
                 "updated_at",
             ]
         )
+        return appointment
+
+
+def user_can_complete_appointment(user, appointment):
+    return (
+        CompanyEmployee.objects.filter(
+            user=user,
+            company=appointment.company,
+            is_active=True,
+        )
+        .filter(
+            role=User.Role.OWNER,
+        )
+        .exists()
+        or CompanyEmployee.objects.filter(
+            user=user,
+            id=appointment.barber_id,
+            company=appointment.company,
+            role=User.Role.BARBER,
+            is_active=True,
+        ).exists()
+    )
+
+
+def complete_appointment(company_slug, appointment_id, user):
+    with transaction.atomic():
+        appointment = get_object_or_404(
+            Appointment.objects.select_for_update().select_related(
+                "company", "customer", "service", "barber__user"
+            ),
+            id=appointment_id,
+            company__slug=company_slug,
+            company__is_active=True,
+        )
+
+        if not user_can_complete_appointment(user, appointment):
+            raise PermissionDenied("Usuario nao pode concluir este agendamento.")
+        if appointment.status == Appointment.Status.COMPLETED:
+            raise ValidationError({"status": "Agendamento ja esta concluido."})
+        if appointment.status == Appointment.Status.CANCELLED:
+            raise ValidationError(
+                {"status": "Agendamento cancelado nao pode ser concluido."}
+            )
+        if appointment.status == Appointment.Status.EXPIRED:
+            raise ValidationError(
+                {"status": "Agendamento expirado nao pode ser concluido."}
+            )
+
+        appointment.status = Appointment.Status.COMPLETED
+        appointment.completed_at = timezone.now()
+        appointment.save(update_fields=["status", "completed_at", "updated_at"])
+
+        from loyalty.services import award_points_for_completed_appointment
+
+        award_points_for_completed_appointment(appointment)
         return appointment
