@@ -183,6 +183,10 @@ SPECTACULAR_SETTINGS = {
             "description": "Disponibilidade, criação e ciclo de vida dos agendamentos.",
         },
         {
+            "name": "Pagamentos",
+            "description": "Criacao, consulta e confirmacao de pagamentos.",
+        },
+        {
             "name": "Notificações",
             "description": "Fluxos transacionais de e-mail e notificações do sistema.",
         },
