@@ -29,6 +29,7 @@ barber_id_parameter = OpenApiParameter(
 )
 
 service_list_schema = extend_schema(
+    tags=["Catálogo"],
     summary="Listar serviços ativos",
     description="Retorna os serviços ativos disponíveis no catálogo público da barbearia.",
     parameters=[company_slug_parameter],
@@ -37,6 +38,7 @@ service_list_schema = extend_schema(
 )
 
 service_detail_schema = extend_schema(
+    tags=["Catálogo"],
     summary="Detalhar serviço",
     description="Retorna os dados públicos de um serviço ativo da barbearia.",
     parameters=[company_slug_parameter, service_id_parameter],
@@ -45,6 +47,7 @@ service_detail_schema = extend_schema(
 )
 
 barber_list_schema = extend_schema(
+    tags=["Catálogo"],
     summary="Listar barbeiros ativos",
     description="Retorna os barbeiros ativos vinculados à barbearia.",
     parameters=[company_slug_parameter],
@@ -53,6 +56,7 @@ barber_list_schema = extend_schema(
 )
 
 barber_detail_schema = extend_schema(
+    tags=["Catálogo"],
     summary="Detalhar barbeiro",
     description="Retorna os dados públicos de um barbeiro ativo da barbearia.",
     parameters=[company_slug_parameter, barber_id_parameter],
@@ -61,6 +65,7 @@ barber_detail_schema = extend_schema(
 )
 
 barber_services_schema = extend_schema(
+    tags=["Catálogo"],
     summary="Listar serviços do barbeiro",
     description="Retorna os serviços ativos que o barbeiro executa na barbearia.",
     parameters=[company_slug_parameter, barber_id_parameter],
@@ -69,6 +74,7 @@ barber_services_schema = extend_schema(
 )
 
 working_hour_list_schema = extend_schema(
+    tags=["Catálogo"],
     summary="Listar horários de funcionamento",
     description="Retorna os horários ativos de funcionamento da barbearia.",
     parameters=[company_slug_parameter],

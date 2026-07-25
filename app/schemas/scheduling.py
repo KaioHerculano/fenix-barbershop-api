@@ -24,6 +24,7 @@ appointment_id_parameter = OpenApiParameter(
 )
 
 availability_schema = extend_schema(
+    tags=["Agendamento"],
     summary="Listar horarios disponiveis",
     description="Retorna horarios disponiveis para servico, barbeiro e data informados.",
     parameters=[
@@ -55,6 +56,7 @@ availability_schema = extend_schema(
 )
 
 appointment_create_list_schema = extend_schema(
+    tags=["Agendamento"],
     summary="Listar ou criar meus agendamentos",
     description="Lista agendamentos do usuario autenticado ou cria um novo agendamento confirmado.",
     parameters=[company_slug_parameter],
@@ -76,6 +78,7 @@ appointment_create_list_schema = extend_schema(
 )
 
 appointment_detail_schema = extend_schema(
+    tags=["Agendamento"],
     summary="Detalhar meu agendamento",
     description="Retorna um agendamento do usuario autenticado.",
     parameters=[company_slug_parameter, appointment_id_parameter],
@@ -83,6 +86,7 @@ appointment_detail_schema = extend_schema(
 )
 
 appointment_cancel_schema = extend_schema(
+    tags=["Agendamento"],
     summary="Cancelar meu agendamento",
     description="Cancela um agendamento do usuario autenticado quando o status permite.",
     parameters=[company_slug_parameter, appointment_id_parameter],
@@ -90,6 +94,7 @@ appointment_cancel_schema = extend_schema(
 )
 
 appointment_reschedule_schema = extend_schema(
+    tags=["Agendamento"],
     summary="Reagendar meu agendamento",
     description="Reagenda um compromisso aplicando as mesmas regras de disponibilidade.",
     parameters=[company_slug_parameter, appointment_id_parameter],
@@ -108,6 +113,7 @@ appointment_reschedule_schema = extend_schema(
 )
 
 appointment_complete_schema = extend_schema(
+    tags=["Agendamento"],
     summary="Concluir agendamento",
     description=(
         "Marca um agendamento como concluido. Apenas owner da empresa ou barbeiro "
