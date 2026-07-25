@@ -16,6 +16,9 @@ A Fenix BarberShop API e o backend do ecossistema de barbearias da Fenix. A apli
 - Criacao, listagem, detalhe, cancelamento e reagendamento de agendamentos.
 - Convite de barbeiro por link seguro.
 - E-mails transacionais via tasks assicronas.
+- Cartao fidelidade por empresa e cliente.
+- Historico transacional de pontos.
+- Resgate simples de pontos.
 
 ## O que ainda nao faz parte do escopo atual
 
@@ -24,7 +27,7 @@ A Fenix BarberShop API e o backend do ecossistema de barbearias da Fenix. A apli
 - Reserva temporaria de horario.
 - Bloqueios manuais de agenda.
 - Notificacoes por WhatsApp/SMS.
-- Fidelidade, no-show, fila de espera ou relatorios.
+- Cupons avancados, cashback, no-show, fila de espera ou relatorios.
 
 ## Links rapidos
 
