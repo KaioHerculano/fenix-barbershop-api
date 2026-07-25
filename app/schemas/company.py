@@ -24,6 +24,7 @@ token_parameter = OpenApiParameter(
 )
 
 staff_invitation_create_schema = extend_schema(
+    tags=["Cadastro"],
     summary="Convidar barbeiro",
     description=(
         "Cria um convite para um usuario se tornar barbeiro da empresa. "
@@ -47,6 +48,7 @@ staff_invitation_create_schema = extend_schema(
 )
 
 staff_invitation_detail_schema = extend_schema(
+    tags=["Cadastro"],
     summary="Detalhar convite",
     description="Retorna dados publicos do convite identificado pelo token.",
     parameters=[token_parameter],
@@ -55,6 +57,7 @@ staff_invitation_detail_schema = extend_schema(
 )
 
 staff_invitation_accept_schema = extend_schema(
+    tags=["Cadastro"],
     summary="Aceitar convite",
     description=(
         "Aceita um convite de barbeiro. Usuario existente deve estar autenticado "

@@ -165,6 +165,32 @@ SPECTACULAR_SETTINGS = {
     "DESCRIPTION": "API do sistema de gestão da Fênix BarberShop.",
     "VERSION": "0.2.0",
     "SERVE_INCLUDE_SCHEMA": False,
+    "TAGS": [
+        {
+            "name": "Autenticação",
+            "description": "Login, renovação de token e recuperação de senha.",
+        },
+        {
+            "name": "Cadastro",
+            "description": "Criação de contas, perfil do usuário e convites de barbeiros.",
+        },
+        {
+            "name": "Catálogo",
+            "description": "Serviços, barbeiros e horários públicos da barbearia.",
+        },
+        {
+            "name": "Agendamento",
+            "description": "Disponibilidade, criação e ciclo de vida dos agendamentos.",
+        },
+        {
+            "name": "Notificações",
+            "description": "Fluxos transacionais de e-mail e notificações do sistema.",
+        },
+        {
+            "name": "Fidelidade",
+            "description": "Saldo, histórico e resgate de pontos do cartão fidelidade.",
+        },
+    ],
 }
 
 SIMPLE_JWT = {

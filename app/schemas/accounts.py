@@ -14,6 +14,7 @@ from accounts.serializers import (
 )
 
 token_obtain_pair_schema = extend_schema(
+    tags=["Autenticação"],
     summary="Login",
     description="Autentica o usuario por e-mail e senha, retornando tokens JWT.",
     request=TokenObtainPairSerializer,
@@ -37,6 +38,7 @@ token_obtain_pair_schema = extend_schema(
 )
 
 token_refresh_schema = extend_schema(
+    tags=["Autenticação"],
     summary="Renovar access token",
     description="Recebe um refresh token valido e retorna um novo access token.",
     request=TokenRefreshSerializer,
@@ -57,6 +59,7 @@ token_refresh_schema = extend_schema(
 )
 
 owner_registration_schema = extend_schema(
+    tags=["Cadastro"],
     summary="Cadastro de owner e empresa",
     description="Cria uma empresa e o usuario administrador principal com role OWNER.",
     request=OwnerRegistrationSerializer,
@@ -83,6 +86,7 @@ owner_registration_schema = extend_schema(
 )
 
 customer_registration_schema = extend_schema(
+    tags=["Cadastro"],
     summary="Cadastro de cliente",
     description="Cria uma conta de cliente e o perfil usado para agendamentos.",
     request=CustomerRegistrationSerializer,
@@ -109,6 +113,7 @@ customer_registration_schema = extend_schema(
 )
 
 user_me_schema = extend_schema(
+    tags=["Cadastro"],
     summary="Perfil do usuario autenticado",
     description="Retorna ou atualiza dados basicos do usuario autenticado.",
     methods=["GET", "PATCH"],
@@ -120,6 +125,7 @@ user_me_schema = extend_schema(
 )
 
 password_reset_request_schema = extend_schema(
+    tags=["Autenticação"],
     summary="Solicitar recuperacao de senha",
     description="Gera token de recuperacao e dispara e-mail transacional quando o e-mail existe.",
     request=PasswordResetRequestSerializer,
@@ -137,6 +143,7 @@ password_reset_request_schema = extend_schema(
 )
 
 password_reset_confirm_schema = extend_schema(
+    tags=["Autenticação"],
     summary="Confirmar nova senha",
     description="Recebe uid, token e nova senha para concluir a recuperacao.",
     request=PasswordResetConfirmSerializer,

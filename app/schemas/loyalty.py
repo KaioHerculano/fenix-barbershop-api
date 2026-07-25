@@ -15,6 +15,7 @@ company_slug_query_parameter = OpenApiParameter(
 )
 
 loyalty_me_schema = extend_schema(
+    tags=["Fidelidade"],
     summary="Consultar meu cartao fidelidade",
     description="Retorna saldo total e cartoes fidelidade do usuario autenticado.",
     parameters=[company_slug_query_parameter],
@@ -22,6 +23,7 @@ loyalty_me_schema = extend_schema(
 )
 
 loyalty_transactions_schema = extend_schema(
+    tags=["Fidelidade"],
     summary="Listar meu historico de pontos",
     description="Lista ganhos, resgates e ajustes do usuario autenticado.",
     parameters=[company_slug_query_parameter],
@@ -29,6 +31,7 @@ loyalty_transactions_schema = extend_schema(
 )
 
 loyalty_redeem_schema = extend_schema(
+    tags=["Fidelidade"],
     summary="Resgatar pontos",
     description="Registra um resgate de pontos quando o usuario possui saldo suficiente.",
     request=LoyaltyRedeemSerializer,
