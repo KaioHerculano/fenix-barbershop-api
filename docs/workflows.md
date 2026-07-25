@@ -138,6 +138,31 @@ Authorization: Bearer customer-access-token
 
 Resultado: cria agendamento `confirmed` e dispara e-mail de confirmacao.
 
+## Criar pagamento do agendamento
+
+```http
+POST /api/v1/payments/create/
+Authorization: Bearer customer-access-token
+Idempotency-Key: payment-create-key
+```
+
+```json
+{
+  "appointment_id": "00000000-0000-0000-0000-000000000000"
+}
+```
+
+Resultado: cria ou retorna o pagamento pendente do agendamento autenticado, usando o valor do servico.
+
+Nesta etapa, a API ainda nao cria cobranca Pix real, nao processa webhook e nao faz split de pagamento.
+
+## Consultar pagamento
+
+```http
+GET /api/v1/payments/{payment_id}/
+Authorization: Bearer customer-access-token
+```
+
 ## Cancelar agendamento
 
 ```http
