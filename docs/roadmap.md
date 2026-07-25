@@ -32,7 +32,7 @@ Esta pagina registra itens previstos ou provaveis. Ela nao representa funcionali
 
 ## Produto
 
-- Fidelidade.
+- Beneficios configuraveis no programa de fidelidade.
 - Relatorios para owner.
 - No-show.
 - Fila de espera.

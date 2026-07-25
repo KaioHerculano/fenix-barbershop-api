@@ -27,6 +27,7 @@ Na fase documentada aqui, a cobertura total esta acima desse limite.
 - Criacao, cancelamento e reagendamento.
 - Convites de barbeiro.
 - E-mails transacionais e fallback sem provider.
+- Fidelidade, saldo, historico, resgate e integracao com agendamento concluido.
 
 ## Qualidade antes de PR
 

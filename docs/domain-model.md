@@ -16,6 +16,10 @@ erDiagram
     User ||--o{ Appointment : books
     CompanyEmployee ||--o{ Appointment : attends
     Service ||--o{ Appointment : booked
+    Company ||--o{ LoyaltyCard : has
+    User ||--o{ LoyaltyCard : owns
+    LoyaltyCard ||--o{ LoyaltyTransaction : records
+    Appointment ||--o| LoyaltyTransaction : earns
 ```
 
 ## User
@@ -120,3 +124,30 @@ Seguranca:
 - banco salva apenas `token_digest`;
 - convite expira;
 - convite so pode ser aceito uma vez.
+
+## LoyaltyCard
+
+Cartao fidelidade de um cliente dentro de uma empresa.
+
+Regras:
+
+- o saldo e separado por empresa;
+- cada par empresa + usuario possui no maximo um cartao;
+- saldo nao deve ser alterado sem transacao correspondente.
+
+## LoyaltyTransaction
+
+Historico transacional de pontos.
+
+Tipos atuais:
+
+- `earn`
+- `redeem`
+- `adjustment`
+
+Regras:
+
+- agendamento concluido gera ponto somente uma vez;
+- resgate exige saldo suficiente;
+- transacoes nao devem ser deletadas;
+- ajuste manual fica registrado no historico.

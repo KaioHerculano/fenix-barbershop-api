@@ -2,6 +2,7 @@ from django.urls import path
 
 from scheduling.views import (
     AppointmentCancelView,
+    AppointmentCompleteView,
     AppointmentDetailView,
     AppointmentListCreateView,
     AppointmentRescheduleView,
@@ -39,5 +40,10 @@ urlpatterns = [
         "api/v1/companies/<slug:company_slug>/appointments/<uuid:appointment_id>/reschedule/",
         AppointmentRescheduleView.as_view(),
         name="company-appointment-reschedule",
+    ),
+    path(
+        "api/v1/companies/<slug:company_slug>/appointments/<uuid:appointment_id>/complete/",
+        AppointmentCompleteView.as_view(),
+        name="company-appointment-complete",
     ),
 ]

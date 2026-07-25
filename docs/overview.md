@@ -23,8 +23,8 @@ As rotas publicas usam o slug da empresa para isolar catalogo, barbeiros, horari
 | `barbers` | Barbeiros publicos e servicos executados |
 | `scheduling` | Horarios, disponibilidade e agendamentos |
 | `notifications` | Conteudo, envio e tasks de e-mail |
+| `loyalty` | Cartoes, saldo e transacoes de fidelidade |
 | `payments` | Reservado para pagamentos futuros |
-| `loyalty` | Reservado para fidelidade futura |
 
 ## Estado atual do produto
 
@@ -37,6 +37,7 @@ flowchart LR
     C --> D["Cliente consulta disponibilidade"]
     D --> E["Cliente agenda horario"]
     E --> F["Cliente recebe notificacao"]
+    F --> G["Atendimento concluido gera pontos"]
 ```
 
 O convite de barbeiro permite que um usuario comum passe a atuar profissionalmente em uma empresa:

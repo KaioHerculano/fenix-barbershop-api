@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from app.schemas.catalog import working_hour_list_schema
 from app.schemas.scheduling import (
     appointment_cancel_schema,
+    appointment_complete_schema,
     appointment_create_list_schema,
     appointment_detail_schema,
     appointment_reschedule_schema,
@@ -30,6 +31,7 @@ from scheduling.serializers import (
 )
 from scheduling.services import (
     cancel_appointment,
+    complete_appointment,
     create_appointment,
     reschedule_appointment,
 )
@@ -161,3 +163,14 @@ class AppointmentRescheduleView(AppointmentCancelView):
         )
         response_serializer = AppointmentSerializer(appointment)
         return Response(response_serializer.data)
+
+
+class AppointmentCompleteView(APIView):
+    serializer_class = AppointmentSerializer
+    permission_classes = [IsAuthenticated]
+
+    @appointment_complete_schema
+    def patch(self, request, company_slug, appointment_id):
+        appointment = complete_appointment(company_slug, appointment_id, request.user)
+        serializer = AppointmentSerializer(appointment)
+        return Response(serializer.data)

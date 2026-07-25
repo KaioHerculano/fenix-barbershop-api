@@ -66,8 +66,8 @@ make test-coverage
 | `barbers` | Barbeiros publicos e servicos executados |
 | `scheduling` | Horarios, disponibilidade e agendamentos |
 | `notifications` | Conteudo, envio e tasks de e-mail |
+| `loyalty` | Cartoes, saldo e historico de pontos |
 | `payments` | Reservado para pagamentos futuros |
-| `loyalty` | Reservado para fidelidade futura |
 
 ## Fluxos ja suportados
 
@@ -82,6 +82,7 @@ make test-coverage
 - Criacao, listagem, detalhe, cancelamento e reagendamento de agendamentos.
 - Convite para usuario se tornar barbeiro.
 - E-mails transacionais via Celery.
+- Cartao fidelidade, saldo, historico e resgate simples de pontos.
 
 ## Variaveis de ambiente
 

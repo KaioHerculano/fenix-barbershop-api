@@ -145,6 +145,17 @@ PATCH /api/v1/companies/{company_slug}/appointments/{appointment_id}/cancel/
 Authorization: Bearer customer-access-token
 ```
 
+## Concluir agendamento e gerar pontos
+
+```http
+PATCH /api/v1/companies/{company_slug}/appointments/{appointment_id}/complete/
+Authorization: Bearer owner-or-barber-access-token
+```
+
+Resultado: marca o agendamento como `completed` e gera 1 ponto para o cliente, caso esse agendamento ainda nao tenha pontuado.
+
+Somente o owner da empresa ou o barbeiro responsavel pelo atendimento podem concluir o agendamento.
+
 ## Reagendar agendamento
 
 ```http
@@ -156,5 +167,41 @@ Authorization: Bearer customer-access-token
 {
   "appointment_date": "2026-07-26",
   "start_time": "10:30"
+}
+```
+
+## Consultar fidelidade
+
+```http
+GET /api/v1/loyalty/me/
+Authorization: Bearer customer-access-token
+```
+
+Com filtro por empresa:
+
+```http
+GET /api/v1/loyalty/me/?company_slug=fenix-barbershop
+Authorization: Bearer customer-access-token
+```
+
+## Consultar historico de pontos
+
+```http
+GET /api/v1/loyalty/transactions/
+Authorization: Bearer customer-access-token
+```
+
+## Resgatar pontos
+
+```http
+POST /api/v1/loyalty/redeem/
+Authorization: Bearer customer-access-token
+```
+
+```json
+{
+  "company_slug": "fenix-barbershop",
+  "points": 3,
+  "description": "Resgate de beneficio no balcao"
 }
 ```

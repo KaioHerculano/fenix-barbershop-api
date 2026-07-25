@@ -48,6 +48,15 @@ http://localhost:8000
 | `GET` | `/api/v1/companies/{company_slug}/appointments/{appointment_id}/` | Sim | Detalha meu agendamento |
 | `PATCH` | `/api/v1/companies/{company_slug}/appointments/{appointment_id}/cancel/` | Sim | Cancela meu agendamento |
 | `PATCH` | `/api/v1/companies/{company_slug}/appointments/{appointment_id}/reschedule/` | Sim | Reagenda meu agendamento |
+| `PATCH` | `/api/v1/companies/{company_slug}/appointments/{appointment_id}/complete/` | Owner ou barbeiro | Conclui agendamento e gera pontos |
+
+## Fidelidade
+
+| Metodo | Rota | Auth | Descricao |
+| --- | --- | --- | --- |
+| `GET` | `/api/v1/loyalty/me/` | Sim | Retorna saldo e cartoes fidelidade |
+| `GET` | `/api/v1/loyalty/transactions/` | Sim | Lista historico de pontos |
+| `POST` | `/api/v1/loyalty/redeem/` | Sim | Registra resgate de pontos |
 
 ## Documentacao tecnica
 
