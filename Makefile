@@ -1,5 +1,6 @@
 PYTHON = python
 MANAGE = $(PYTHON) manage.py
+TEST_SETTINGS = app.settings_test
 MIN_COVERAGE = 90
 
 .PHONY: help install safety run migrate migrations shell loaddata format lint test test-app test-coverage pre-commit check-migrations ci-check clean
@@ -46,14 +47,14 @@ lint:
 	poetry run flake8 .
 
 test:
-	$(MANAGE) test -v 2
+	$(MANAGE) test --settings=$(TEST_SETTINGS) -v 2
 
 test-app:
-	$(MANAGE) test $(APP) -v 2
+	$(MANAGE) test $(APP) --settings=$(TEST_SETTINGS) -v 2
 
 test-coverage:
 	poetry run coverage erase
-	poetry run coverage run manage.py test -v 2
+	poetry run coverage run manage.py test --settings=$(TEST_SETTINGS) -v 2
 	poetry run coverage report -m --fail-under=$(MIN_COVERAGE)
 	poetry run coverage html
 
