@@ -58,6 +58,13 @@ http://localhost:8000
 | `GET` | `/api/v1/loyalty/transactions/` | Sim | Lista historico de pontos |
 | `POST` | `/api/v1/loyalty/redeem/` | Sim | Registra resgate de pontos |
 
+## Pagamentos
+
+| Metodo | Rota | Auth | Descricao |
+| --- | --- | --- | --- |
+| `POST` | `/api/v1/payments/create/` | Sim | Cria ou retorna pagamento pendente de um agendamento |
+| `GET` | `/api/v1/payments/{payment_id}/` | Sim | Consulta pagamento do usuario autenticado |
+
 ## Documentacao tecnica
 
 | Metodo | Rota | Auth | Descricao |

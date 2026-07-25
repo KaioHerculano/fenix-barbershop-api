@@ -1,6 +1,6 @@
 # Fenix BarberShop API
 
-Backend da Fenix BarberShop, uma API em Django REST Framework para gestao de barbearias, catalogo publico, barbeiros, agenda, convites e notificacoes transacionais.
+Backend da Fenix BarberShop, uma API em Django REST Framework para gestao de barbearias, catalogo publico, barbeiros, agenda, convites, pagamentos e notificacoes transacionais.
 
 O projeto esta em desenvolvimento. A documentacao descreve o estado atual da API, sem incluir funcionalidades planejadas como se ja estivessem prontas.
 
@@ -67,7 +67,7 @@ make test-coverage
 | `scheduling` | Horarios, disponibilidade e agendamentos |
 | `notifications` | Conteudo, envio e tasks de e-mail |
 | `loyalty` | Cartoes, saldo e historico de pontos |
-| `payments` | Reservado para pagamentos futuros |
+| `payments` | Pagamentos, status e idempotencia |
 
 ## Fluxos ja suportados
 
@@ -83,6 +83,7 @@ make test-coverage
 - Convite para usuario se tornar barbeiro.
 - E-mails transacionais via Celery.
 - Cartao fidelidade, saldo, historico e resgate simples de pontos.
+- Criacao e consulta de pagamentos pendentes com idempotencia.
 
 ## Variaveis de ambiente
 
