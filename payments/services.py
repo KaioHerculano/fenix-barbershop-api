@@ -1,15 +1,29 @@
 from uuid import uuid4
 
+from django.conf import settings
 from django.db import IntegrityError, transaction
 from django.shortcuts import get_object_or_404
+from django.urls import reverse
+from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
-from payments.models import Payment
+from notifications.tasks import send_appointment_confirmation_email
+from payments.gateways import get_payment_gateway
+from payments.gateways.base import PixChargeRequest
+from payments.models import Payment, PaymentWebhookEvent
 from scheduling.models import Appointment
 
 
 def build_payment_idempotency_key():
     return f"payment-create-{uuid4()}"
+
+
+def build_payment_notification_url():
+    if not settings.PAYMENT_WEBHOOK_BASE_URL:
+        return ""
+    return (
+        f"{settings.PAYMENT_WEBHOOK_BASE_URL.rstrip('/')}{reverse('payment-webhook')}"
+    )
 
 
 def validate_appointment_payable(appointment):
@@ -73,6 +87,7 @@ def create_payment_for_appointment(user, appointment_id, idempotency_key=None):
             .first()
         )
         if existing_pending_payment:
+            ensure_payment_charge(existing_pending_payment)
             return existing_pending_payment, False
 
         if Payment.objects.filter(
@@ -84,15 +99,14 @@ def create_payment_for_appointment(user, appointment_id, idempotency_key=None):
             )
 
         try:
-            return (
-                Payment.objects.create(
-                    user=user,
-                    appointment=appointment,
-                    amount=appointment.service.price,
-                    idempotency_key=idempotency_key or build_payment_idempotency_key(),
-                ),
-                True,
+            payment = Payment.objects.create(
+                user=user,
+                appointment=appointment,
+                amount=appointment.service.price,
+                idempotency_key=idempotency_key or build_payment_idempotency_key(),
             )
+            ensure_payment_charge(payment)
+            return payment, True
         except IntegrityError:
             payment = (
                 Payment.objects.filter(
@@ -105,5 +119,120 @@ def create_payment_for_appointment(user, appointment_id, idempotency_key=None):
                 .first()
             )
             if payment:
+                ensure_payment_charge(payment)
                 return payment, False
             raise
+
+
+def ensure_payment_charge(payment):
+    if payment.provider_payment_id:
+        return payment
+
+    charge_result = get_payment_gateway().create_pix_charge(
+        PixChargeRequest(
+            payment_id=str(payment.id),
+            idempotency_key=payment.idempotency_key,
+            amount=payment.amount,
+            description=payment.appointment.service.name,
+            payer_email=payment.user.email,
+            notification_url=build_payment_notification_url(),
+        )
+    )
+    apply_charge_result(payment, charge_result)
+    return payment
+
+
+def apply_charge_result(payment, charge_result):
+    payment.provider = charge_result.provider
+    payment.provider_payment_id = charge_result.provider_payment_id
+    payment.payment_method = charge_result.payment_method
+    payment.checkout_url = charge_result.checkout_url
+    payment.payment_code = charge_result.payment_code
+    payment.qr_code_base64 = charge_result.qr_code_base64
+    payment.provider_payload = charge_result.provider_payload
+    payment.expires_at = charge_result.expires_at
+    payment.save(
+        update_fields=[
+            "provider",
+            "provider_payment_id",
+            "payment_method",
+            "checkout_url",
+            "payment_code",
+            "qr_code_base64",
+            "provider_payload",
+            "expires_at",
+            "updated_at",
+        ]
+    )
+
+
+def process_payment_webhook(payload, headers=None, query_params=None, provider=None):
+    headers = headers or {}
+    query_params = query_params or {}
+    webhook_result = get_payment_gateway(provider).parse_webhook(
+        payload,
+        headers,
+        query_params,
+    )
+    with transaction.atomic():
+        event, created = PaymentWebhookEvent.objects.get_or_create(
+            provider=webhook_result.provider,
+            provider_event_id=webhook_result.provider_event_id,
+            defaults={
+                "provider_payment_id": webhook_result.provider_payment_id,
+                "event_type": webhook_result.event_type,
+                "action": webhook_result.action,
+                "raw_payload": webhook_result.raw_payload,
+            },
+        )
+        if not created and event.processed_at:
+            return event, False
+
+        payment = get_object_or_404(
+            Payment.objects.select_for_update(),
+            provider=webhook_result.provider,
+            provider_payment_id=webhook_result.provider_payment_id,
+        )
+        if webhook_result.paid and payment.status != Payment.Status.PAID:
+            payment.status = Payment.Status.PAID
+            payment.paid_at = webhook_result.paid_at or timezone.now()
+            payment.provider_payload = webhook_result.raw_payload
+            payment.save(
+                update_fields=[
+                    "status",
+                    "paid_at",
+                    "provider_payload",
+                    "updated_at",
+                ]
+            )
+            confirm_paid_appointment(payment.appointment)
+
+        event.provider_payment_id = webhook_result.provider_payment_id
+        event.event_type = webhook_result.event_type
+        event.action = webhook_result.action
+        event.raw_payload = webhook_result.raw_payload
+        event.processed_at = timezone.now()
+        event.save(
+            update_fields=[
+                "provider_payment_id",
+                "event_type",
+                "action",
+                "raw_payload",
+                "processed_at",
+            ]
+        )
+        return event, True
+
+
+def confirm_paid_appointment(appointment):
+    if appointment.status == Appointment.Status.CONFIRMED:
+        return appointment
+    if appointment.status != Appointment.Status.PENDING:
+        raise ValidationError({"appointment": "Agendamento nao pode ser confirmado."})
+
+    appointment.status = Appointment.Status.CONFIRMED
+    appointment.save(update_fields=["status", "updated_at"])
+    transaction.on_commit(
+        lambda: send_appointment_confirmation_email.delay(str(appointment.id))
+    )
+    return appointment

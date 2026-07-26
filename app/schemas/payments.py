@@ -1,6 +1,10 @@
 from drf_spectacular.utils import OpenApiExample, OpenApiParameter, extend_schema
 
-from payments.serializers import PaymentCreateSerializer, PaymentSerializer
+from payments.serializers import (
+    PaymentCreateSerializer,
+    PaymentSerializer,
+    PaymentWebhookSerializer,
+)
 
 idempotency_key_header = OpenApiParameter(
     name="Idempotency-Key",
@@ -23,7 +27,7 @@ payment_create_schema = extend_schema(
     summary="Criar pagamento do agendamento",
     description=(
         "Cria ou retorna o pagamento pendente de um agendamento do usuario autenticado. "
-        "Nesta etapa o pagamento ainda nao chama o gateway Pix real."
+        "Quando PAYMENT_GATEWAY=mercado_pago, cria a cobranca Pix no adapter Mercado Pago."
     ),
     parameters=[idempotency_key_header],
     request=PaymentCreateSerializer,
@@ -43,4 +47,17 @@ payment_detail_schema = extend_schema(
     description="Retorna os dados de um pagamento do usuario autenticado.",
     parameters=[payment_id_parameter],
     responses={200: PaymentSerializer, 404: None},
+)
+
+payment_webhook_schema = extend_schema(
+    tags=["Pagamentos"],
+    summary="Receber webhook de pagamento",
+    description=(
+        "Recebe eventos do gateway configurado. Para Mercado Pago, valida assinatura "
+        "quando MERCADO_PAGO_WEBHOOK_SECRET esta configurado, busca o pagamento no provider "
+        "e processa o evento com idempotencia."
+    ),
+    request=PaymentWebhookSerializer,
+    auth=[],
+    responses={200: None, 400: None, 404: None},
 )
