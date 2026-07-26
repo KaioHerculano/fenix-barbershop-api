@@ -157,9 +157,6 @@ class WorkingHourModelTests(TestCase):
 class AppointmentServiceTests(TestCase):
     def setUp(self):
         self.fake = FakeData()
-        self.confirmation_task = patch(
-            "scheduling.services.send_appointment_confirmation_email.delay"
-        ).start()
         self.cancelled_task = patch(
             "scheduling.services.send_appointment_cancelled_email.delay"
         ).start()
@@ -187,8 +184,7 @@ class AppointmentServiceTests(TestCase):
             )
 
         self.assertEqual(appointment.end_time, time(9, 30))
-        self.assertEqual(appointment.status, Appointment.Status.CONFIRMED)
-        self.confirmation_task.assert_called_once_with(str(appointment.id))
+        self.assertEqual(appointment.status, Appointment.Status.PENDING)
 
     def test_rejects_inactive_service(self):
         inactive_service = self.fake.service(self.company, is_active=False)
@@ -570,9 +566,6 @@ class WorkingHourAPITests(APITestCase):
 class AppointmentAPITests(APITestCase):
     def setUp(self):
         self.fake = FakeData()
-        self.confirmation_task = patch(
-            "scheduling.services.send_appointment_confirmation_email.delay"
-        ).start()
         self.cancelled_task = patch(
             "scheduling.services.send_appointment_cancelled_email.delay"
         ).start()
@@ -676,7 +669,7 @@ class AppointmentAPITests(APITestCase):
         )
 
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
-        self.assertEqual(response.data["status"], Appointment.Status.CONFIRMED)
+        self.assertEqual(response.data["status"], Appointment.Status.PENDING)
         self.assertEqual(response.data["end_time"], "09:30:00")
         self.assertNotIn("customer", response.data)
 

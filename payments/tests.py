@@ -1,8 +1,11 @@
+import hashlib
+import hmac
+import json
 from datetime import time, timedelta
 from decimal import Decimal
 
 from django.core.exceptions import ValidationError as DjangoValidationError
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 from django.utils import timezone
 from django.utils.crypto import get_random_string
@@ -13,8 +16,10 @@ from rest_framework.test import APITestCase
 from accounts.models import User
 from barbers.models import BarberService
 from company.models import Company, CompanyEmployee
-from payments.models import Payment
-from payments.services import create_payment_for_appointment
+from payments.gateways.base import PixChargeRequest
+from payments.gateways.mercado_pago import MercadoPagoPaymentGateway
+from payments.models import Payment, PaymentWebhookEvent
+from payments.services import create_payment_for_appointment, process_payment_webhook
 from scheduling.models import Appointment
 from services.models import Service
 
@@ -160,6 +165,10 @@ class PaymentServiceTests(TestCase):
         self.assertTrue(created)
         self.assertEqual(payment.amount, Decimal("75.90"))
         self.assertEqual(payment.appointment, self.appointment)
+        self.assertEqual(payment.provider, Payment.Provider.INTERNAL)
+        self.assertEqual(payment.payment_method, Payment.Method.PIX)
+        self.assertTrue(payment.provider_payment_id.startswith("internal-"))
+        self.assertTrue(payment.payment_code)
 
     def test_returns_same_payment_for_same_idempotency_key(self):
         first_payment, first_created = create_payment_for_appointment(
@@ -258,6 +267,57 @@ class PaymentServiceTests(TestCase):
                 "payment-after-paid-key",
             )
 
+    def test_processes_paid_webhook_once_and_confirms_appointment(self):
+        payment, _ = create_payment_for_appointment(
+            self.customer,
+            self.appointment.id,
+            "payment-webhook-key",
+        )
+
+        with self.captureOnCommitCallbacks(execute=True):
+            event, processed = process_payment_webhook(
+                {
+                    "id": "event-1",
+                    "provider_payment_id": payment.provider_payment_id,
+                    "status": "paid",
+                    "type": "payment",
+                    "action": "payment.updated",
+                },
+                provider=Payment.Provider.INTERNAL,
+            )
+
+        payment.refresh_from_db()
+        self.appointment.refresh_from_db()
+        self.assertTrue(processed)
+        self.assertEqual(event.processed_at.date(), timezone.localdate())
+        self.assertEqual(payment.status, Payment.Status.PAID)
+        self.assertIsNotNone(payment.paid_at)
+        self.assertEqual(self.appointment.status, Appointment.Status.CONFIRMED)
+
+    def test_ignores_repeated_webhook_event(self):
+        payment, _ = create_payment_for_appointment(
+            self.customer,
+            self.appointment.id,
+            "payment-duplicated-webhook-key",
+        )
+        payload = {
+            "id": "event-duplicated",
+            "provider_payment_id": payment.provider_payment_id,
+            "status": "paid",
+            "type": "payment",
+            "action": "payment.updated",
+        }
+
+        process_payment_webhook(payload, provider=Payment.Provider.INTERNAL)
+        event, processed = process_payment_webhook(
+            payload,
+            provider=Payment.Provider.INTERNAL,
+        )
+
+        self.assertFalse(processed)
+        self.assertEqual(PaymentWebhookEvent.objects.count(), 1)
+        self.assertIsNotNone(event.processed_at)
+
 
 class PaymentAPITests(APITestCase):
     def setUp(self):
@@ -300,6 +360,8 @@ class PaymentAPITests(APITestCase):
         self.assertEqual(response.data["appointment_id"], str(self.appointment.id))
         self.assertEqual(response.data["amount"], "50.00")
         self.assertEqual(response.data["status"], Payment.Status.PENDING)
+        self.assertEqual(response.data["payment_method"], Payment.Method.PIX)
+        self.assertTrue(response.data["payment_code"])
 
     def test_repeated_create_returns_existing_payment(self):
         self.client.force_authenticate(user=self.customer)
@@ -346,3 +408,154 @@ class PaymentAPITests(APITestCase):
         response = self.client.get(self.detail_url(payment))
 
         self.assertEqual(response.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_public_webhook_confirms_payment(self):
+        payment, _ = create_payment_for_appointment(
+            self.customer,
+            self.appointment.id,
+            "api-webhook-key",
+        )
+
+        response = self.client.post(
+            reverse("payment-webhook"),
+            {
+                "id": "api-event-1",
+                "provider_payment_id": payment.provider_payment_id,
+                "status": "paid",
+                "type": "payment",
+                "action": "payment.updated",
+            },
+            format="json",
+        )
+
+        payment.refresh_from_db()
+        self.appointment.refresh_from_db()
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(payment.status, Payment.Status.PAID)
+        self.assertEqual(self.appointment.status, Appointment.Status.CONFIRMED)
+
+
+class FakeHTTPResponse:
+    def __init__(self, payload):
+        self.payload = payload
+
+    def __enter__(self):
+        return self
+
+    def __exit__(self, exc_type, exc_value, traceback):
+        return False
+
+    def read(self):
+        return json.dumps(self.payload).encode("utf-8")
+
+
+class MercadoPagoGatewayTests(TestCase):
+    @override_settings(
+        MERCADO_PAGO_ACCESS_TOKEN="APP_USR-test",
+        MERCADO_PAGO_WEBHOOK_SECRET="secret",
+    )
+    def test_creates_pix_charge_mapping_provider_response(self):
+        response_payload = {
+            "id": 123456,
+            "status": "pending",
+            "date_of_expiration": "2026-07-26T12:00:00-04:00",
+            "point_of_interaction": {
+                "transaction_data": {
+                    "ticket_url": "https://mercadopago.test/ticket",
+                    "qr_code": "pix-code",
+                    "qr_code_base64": "base64-code",
+                }
+            },
+        }
+        gateway = MercadoPagoPaymentGateway()
+
+        with self.patch_urlopen(response_payload) as urlopen_mock:
+            result = gateway.create_pix_charge(
+                PixChargeRequest(
+                    payment_id="payment-id",
+                    idempotency_key="idempotency-key",
+                    amount=Decimal("50.00"),
+                    description="Servico",
+                    payer_email="cliente@example.com",
+                    notification_url="https://api.test/api/v1/payments/webhook/",
+                )
+            )
+
+        request = urlopen_mock.call_args.args[0]
+        self.assertEqual(result.provider, Payment.Provider.MERCADO_PAGO)
+        self.assertEqual(result.provider_payment_id, "123456")
+        self.assertEqual(result.checkout_url, "https://mercadopago.test/ticket")
+        self.assertEqual(result.payment_code, "pix-code")
+        self.assertEqual(result.qr_code_base64, "base64-code")
+        self.assertEqual(request.headers["X-idempotency-key"], "idempotency-key")
+
+    @override_settings(
+        MERCADO_PAGO_ACCESS_TOKEN="APP_USR-test",
+        MERCADO_PAGO_WEBHOOK_SECRET="secret",
+    )
+    def test_validates_webhook_signature_and_fetches_provider_payment(self):
+        gateway = MercadoPagoPaymentGateway()
+        data_id = "123456"
+        request_id = "request-id"
+        timestamp = "1704908010"
+        manifest = f"id:{data_id};request-id:{request_id};ts:{timestamp};"
+        signature = hmac.new(
+            b"secret",
+            msg=manifest.encode("utf-8"),
+            digestmod=hashlib.sha256,
+        ).hexdigest()
+        headers = {
+            "x-signature": f"ts={timestamp},v1={signature}",
+            "x-request-id": request_id,
+        }
+        response_payload = {
+            "id": 123456,
+            "status": "approved",
+            "date_approved": "2026-07-26T12:00:00-04:00",
+        }
+
+        with self.patch_urlopen(response_payload):
+            result = gateway.parse_webhook(
+                {
+                    "id": "event-id",
+                    "type": "payment",
+                    "action": "payment.updated",
+                    "data": {"id": data_id},
+                },
+                headers,
+                {},
+            )
+
+        self.assertTrue(result.paid)
+        self.assertEqual(result.provider_payment_id, data_id)
+        self.assertEqual(result.provider_status, "approved")
+
+    @override_settings(
+        MERCADO_PAGO_ACCESS_TOKEN="APP_USR-test",
+        MERCADO_PAGO_WEBHOOK_SECRET="secret",
+    )
+    def test_rejects_invalid_webhook_signature(self):
+        gateway = MercadoPagoPaymentGateway()
+
+        with self.assertRaises(ValidationError):
+            gateway.parse_webhook(
+                {
+                    "id": "event-id",
+                    "type": "payment",
+                    "action": "payment.updated",
+                    "data": {"id": "123456"},
+                },
+                {
+                    "x-signature": "ts=1704908010,v1=invalid",
+                    "x-request-id": "request-id",
+                },
+                {},
+            )
+
+    def patch_urlopen(self, payload):
+        from unittest.mock import patch
+
+        return patch(
+            "payments.gateways.mercado_pago.urlopen",
+            return_value=FakeHTTPResponse(payload),
+        )
