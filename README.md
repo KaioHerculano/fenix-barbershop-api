@@ -67,7 +67,7 @@ make test-coverage
 | `scheduling` | Horarios, disponibilidade e agendamentos |
 | `notifications` | Conteudo, envio e tasks de e-mail |
 | `loyalty` | Cartoes, saldo e historico de pontos |
-| `payments` | Pagamentos, status e idempotencia |
+| `payments` | Pagamentos Pix, adapters de gateway, webhooks e idempotencia |
 
 ## Fluxos ja suportados
 
@@ -83,7 +83,8 @@ make test-coverage
 - Convite para usuario se tornar barbeiro.
 - E-mails transacionais via Celery.
 - Cartao fidelidade, saldo, historico e resgate simples de pontos.
-- Criacao e consulta de pagamentos pendentes com idempotencia.
+- Criacao e consulta de pagamentos Pix com idempotencia.
+- Webhook de pagamento com confirmacao automatica de agendamento.
 
 ## Variaveis de ambiente
 
@@ -102,3 +103,7 @@ Principais variaveis:
 - `FRONTEND_URL`
 - `RESEND_API_KEY`
 - `RESEND_FROM_EMAIL`
+- `PAYMENT_GATEWAY`
+- `PAYMENT_WEBHOOK_BASE_URL`
+- `MERCADO_PAGO_ACCESS_TOKEN`
+- `MERCADO_PAGO_WEBHOOK_SECRET`

@@ -62,8 +62,9 @@ http://localhost:8000
 
 | Metodo | Rota | Auth | Descricao |
 | --- | --- | --- | --- |
-| `POST` | `/api/v1/payments/create/` | Sim | Cria ou retorna pagamento pendente de um agendamento |
+| `POST` | `/api/v1/payments/create/` | Sim | Cria ou retorna pagamento Pix pendente de um agendamento |
 | `GET` | `/api/v1/payments/{payment_id}/` | Sim | Consulta pagamento do usuario autenticado |
+| `POST` | `/api/v1/payments/webhook/` | Nao | Recebe webhook do gateway de pagamento |
 
 ## Documentacao tecnica
 

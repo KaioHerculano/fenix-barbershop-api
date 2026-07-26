@@ -18,8 +18,6 @@ Esta pagina registra itens previstos ou provaveis. Ela nao representa funcionali
 
 ## Pagamentos
 
-- Integracao Pix.
-- Webhook de confirmacao.
 - Reserva temporaria de horario enquanto pagamento esta pendente.
 - Expiracao automatica de reservas.
 - Conexao Mercado Pago do barbeiro.
