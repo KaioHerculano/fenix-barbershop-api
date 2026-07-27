@@ -18,6 +18,9 @@ class Payment(models.Model):
 
     ACTIVE_STATUSES = [Status.PENDING]
 
+    class Method(models.TextChoices):
+        PIX = "pix", "Pix"
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     user = models.ForeignKey(
         "accounts.User",
@@ -42,9 +45,16 @@ class Payment(models.Model):
     )
     provider_payment_id = models.CharField(max_length=120, blank=True)
     idempotency_key = models.CharField(max_length=120, unique=True)
-    pix_qr_code = models.TextField(blank=True)
-    pix_copy_paste = models.TextField(blank=True)
-    raw_response = models.JSONField(default=dict, blank=True)
+    payment_method = models.CharField(
+        max_length=30,
+        choices=Method.choices,
+        default=Method.PIX,
+    )
+    checkout_url = models.URLField(blank=True)
+    payment_code = models.TextField(blank=True)
+    qr_code_base64 = models.TextField(blank=True)
+    provider_payload = models.JSONField(default=dict, blank=True)
+    expires_at = models.DateTimeField(blank=True, null=True)
     paid_at = models.DateTimeField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -92,3 +102,33 @@ class Payment(models.Model):
 
     def __str__(self):
         return f"{self.appointment_id} - {self.status}"
+
+
+class PaymentWebhookEvent(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    provider = models.CharField(max_length=30, choices=Payment.Provider.choices)
+    provider_event_id = models.CharField(max_length=120)
+    provider_payment_id = models.CharField(max_length=120, blank=True)
+    event_type = models.CharField(max_length=80, blank=True)
+    action = models.CharField(max_length=80, blank=True)
+    raw_payload = models.JSONField(default=dict, blank=True)
+    processed_at = models.DateTimeField(blank=True, null=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ["-created_at"]
+        indexes = [
+            models.Index(
+                fields=["provider", "provider_payment_id"],
+                name="payment_webhook_provider_idx",
+            ),
+        ]
+        constraints = [
+            models.UniqueConstraint(
+                fields=["provider", "provider_event_id"],
+                name="unique_payment_webhook_provider_event",
+            ),
+        ]
+
+    def __str__(self):
+        return f"{self.provider} - {self.provider_event_id}"

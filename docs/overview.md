@@ -24,7 +24,7 @@ As rotas publicas usam o slug da empresa para isolar catalogo, barbeiros, horari
 | `scheduling` | Horarios, disponibilidade e agendamentos |
 | `notifications` | Conteudo, envio e tasks de e-mail |
 | `loyalty` | Cartoes, saldo e transacoes de fidelidade |
-| `payments` | Reservado para pagamentos futuros |
+| `payments` | Pagamentos Pix, webhooks e adapters de gateway |
 
 ## Estado atual do produto
 
@@ -36,8 +36,9 @@ flowchart LR
     B --> C["Cliente consulta servicos e barbeiros"]
     C --> D["Cliente consulta disponibilidade"]
     D --> E["Cliente agenda horario"]
-    E --> F["Cliente recebe notificacao"]
-    F --> G["Atendimento concluido gera pontos"]
+    E --> F["Cliente paga Pix"]
+    F --> G["Webhook confirma agendamento"]
+    G --> H["Atendimento concluido gera pontos"]
 ```
 
 O convite de barbeiro permite que um usuario comum passe a atuar profissionalmente em uma empresa:

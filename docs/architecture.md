@@ -36,7 +36,7 @@ As consultas devem sempre filtrar por empresa para evitar vazamento entre tenant
 
 ## Agenda
 
-Agendamentos ocupam horario quando estao em status `pending` ou `confirmed`. Na fase atual, novos agendamentos sao criados como `confirmed`.
+Agendamentos ocupam horario quando estao em status `pending` ou `confirmed`. Novos agendamentos nascem como `pending` e passam para `confirmed` quando o pagamento e aprovado pelo gateway.
 
 O `end_time` e calculado pela duracao do servico, e a disponibilidade considera:
 

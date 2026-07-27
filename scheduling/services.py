@@ -5,10 +5,7 @@ from rest_framework.exceptions import PermissionDenied, ValidationError
 
 from accounts.models import User
 from company.models import CompanyEmployee
-from notifications.tasks import (
-    send_appointment_cancelled_email,
-    send_appointment_confirmation_email,
-)
+from notifications.tasks import send_appointment_cancelled_email
 from scheduling.models import Appointment
 from scheduling.selectors import (
     get_active_barber,
@@ -40,11 +37,8 @@ def create_appointment(company_slug, customer, data):
             appointment_date=data["appointment_date"],
             start_time=data["start_time"],
             end_time=end_time,
-            status=Appointment.Status.CONFIRMED,
+            status=Appointment.Status.PENDING,
             notes=data.get("notes", ""),
-        )
-        transaction.on_commit(
-            lambda: send_appointment_confirmation_email.delay(str(appointment.id))
         )
         return appointment
 

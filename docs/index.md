@@ -19,11 +19,12 @@ A Fenix BarberShop API e o backend do ecossistema de barbearias da Fenix. A apli
 - Cartao fidelidade por empresa e cliente.
 - Historico transacional de pontos.
 - Resgate simples de pontos.
+- Pagamentos Pix via adapter de gateway.
+- Webhook de pagamento com confirmacao automatica.
 
 ## O que ainda nao faz parte do escopo atual
 
 - Painel administrativo via API para criar servicos e horarios.
-- Pagamentos Pix.
 - Reserva temporaria de horario.
 - Bloqueios manuais de agenda.
 - Notificacoes por WhatsApp/SMS.

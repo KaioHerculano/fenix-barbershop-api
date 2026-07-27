@@ -136,7 +136,7 @@ Authorization: Bearer customer-access-token
 }
 ```
 
-Resultado: cria agendamento `confirmed` e dispara e-mail de confirmacao.
+Resultado: cria agendamento `pending`. O horario ja fica reservado porque agendamentos pendentes bloqueiam a agenda.
 
 ## Criar pagamento do agendamento
 
@@ -154,7 +154,7 @@ Idempotency-Key: payment-create-key
 
 Resultado: cria ou retorna o pagamento pendente do agendamento autenticado, usando o valor do servico.
 
-Nesta etapa, a API ainda nao cria cobranca Pix real, nao processa webhook e nao faz split de pagamento.
+Quando `PAYMENT_GATEWAY=mercado_pago`, a resposta inclui dados de Pix retornados pelo gateway, como `payment_code`, `qr_code_base64` e `checkout_url`.
 
 ## Consultar pagamento
 
@@ -162,6 +162,14 @@ Nesta etapa, a API ainda nao cria cobranca Pix real, nao processa webhook e nao 
 GET /api/v1/payments/{payment_id}/
 Authorization: Bearer customer-access-token
 ```
+
+## Confirmar pagamento por webhook
+
+```http
+POST /api/v1/payments/webhook/
+```
+
+Resultado: processa o evento de forma idempotente. Quando o gateway informa pagamento aprovado, o pagamento vira `paid`, o agendamento vira `confirmed` e o e-mail de confirmacao e disparado.
 
 ## Cancelar agendamento
 

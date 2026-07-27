@@ -16,6 +16,8 @@ erDiagram
     User ||--o{ Appointment : books
     CompanyEmployee ||--o{ Appointment : attends
     Service ||--o{ Appointment : booked
+    User ||--o{ Payment : pays
+    Appointment ||--o{ Payment : charges
     Company ||--o{ LoyaltyCard : has
     User ||--o{ LoyaltyCard : owns
     LoyaltyCard ||--o{ LoyaltyTransaction : records
@@ -113,6 +115,31 @@ Status que ocupam agenda:
 
 - `pending`
 - `confirmed`
+
+Novos agendamentos nascem como `pending` e sao confirmados apos pagamento aprovado.
+
+## Payment
+
+Pagamento vinculado a um agendamento.
+
+Status atuais:
+
+- `pending`
+- `paid`
+- `failed`
+- `cancelled`
+
+Campos importantes:
+
+- `provider`
+- `provider_payment_id`
+- `idempotency_key`
+- `payment_method`
+- `checkout_url`
+- `payment_code`
+- `qr_code_base64`
+
+O gateway de pagamento fica atras de adapter para permitir troca futura sem espalhar regras de provider no dominio.
 
 ## StaffInvitation
 
