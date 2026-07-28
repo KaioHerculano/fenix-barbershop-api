@@ -151,22 +151,26 @@ def complete_appointment(company_slug, appointment_id, user):
 
         if not user_can_complete_appointment(user, appointment):
             raise PermissionDenied("Usuario nao pode concluir este agendamento.")
-        if appointment.status == Appointment.Status.COMPLETED:
-            raise ValidationError({"status": "Agendamento ja esta concluido."})
-        if appointment.status == Appointment.Status.CANCELLED:
-            raise ValidationError(
-                {"status": "Agendamento cancelado nao pode ser concluido."}
-            )
-        if appointment.status == Appointment.Status.EXPIRED:
-            raise ValidationError(
-                {"status": "Agendamento expirado nao pode ser concluido."}
-            )
+        return complete_appointment_record(appointment)
 
-        appointment.status = Appointment.Status.COMPLETED
-        appointment.completed_at = timezone.now()
-        appointment.save(update_fields=["status", "completed_at", "updated_at"])
 
-        from loyalty.services import award_points_for_completed_appointment
+def complete_appointment_record(appointment):
+    if appointment.status == Appointment.Status.COMPLETED:
+        raise ValidationError({"status": "Agendamento ja esta concluido."})
+    if appointment.status == Appointment.Status.CANCELLED:
+        raise ValidationError(
+            {"status": "Agendamento cancelado nao pode ser concluido."}
+        )
+    if appointment.status == Appointment.Status.EXPIRED:
+        raise ValidationError(
+            {"status": "Agendamento expirado nao pode ser concluido."}
+        )
 
-        award_points_for_completed_appointment(appointment)
-        return appointment
+    appointment.status = Appointment.Status.COMPLETED
+    appointment.completed_at = timezone.now()
+    appointment.save(update_fields=["status", "completed_at", "updated_at"])
+
+    from loyalty.services import award_points_for_completed_appointment
+
+    award_points_for_completed_appointment(appointment)
+    return appointment
