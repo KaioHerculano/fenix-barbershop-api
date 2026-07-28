@@ -21,10 +21,12 @@ A Fenix BarberShop API e o backend do ecossistema de barbearias da Fenix. A apli
 - Resgate simples de pontos.
 - Pagamentos Pix via adapter de gateway.
 - Webhook de pagamento com confirmacao automatica.
+- Painel administrativo operacional via Django Admin.
 
 ## O que ainda nao faz parte do escopo atual
 
-- Painel administrativo via API para criar servicos e horarios.
+- Painel administrativo frontend customizado.
+- API administrativa customizada para owner.
 - Reserva temporaria de horario.
 - Bloqueios manuais de agenda.
 - Notificacoes por WhatsApp/SMS.

@@ -25,6 +25,7 @@ nav:
   - Arquitetura: architecture.md
   - Autenticacao e seguranca: authentication-security.md
   - Fluxos principais: workflows.md
+  - Painel administrativo: admin-operations.md
   - API Endpoints: api-endpoints.md
   - Modelagem atual: domain-model.md
   - Notificacoes: notifications.md
