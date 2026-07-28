@@ -188,3 +188,33 @@ class PaymentServiceTests(TestCase):
         self.assertFalse(processed)
         self.assertEqual(PaymentWebhookEvent.objects.count(), 1)
         self.assertIsNotNone(event.processed_at)
+
+    def test_paid_webhook_does_not_confirm_cancelled_payment(self):
+        payment, _ = create_payment_for_appointment(
+            self.customer,
+            self.appointment.id,
+            "payment-cancelled-webhook-key",
+        )
+        payment.status = Payment.Status.CANCELLED
+        payment.save(update_fields=["status", "updated_at"])
+        self.appointment.status = Appointment.Status.CANCELLED
+        self.appointment.save(update_fields=["status", "updated_at"])
+
+        event, processed = process_payment_webhook(
+            {
+                "id": "event-after-local-cancel",
+                "provider_payment_id": payment.provider_payment_id,
+                "status": "paid",
+                "type": "payment",
+                "action": "payment.updated",
+            },
+            provider=Payment.Provider.INTERNAL,
+        )
+
+        payment.refresh_from_db()
+        self.appointment.refresh_from_db()
+        self.assertTrue(processed)
+        self.assertIsNotNone(event.processed_at)
+        self.assertEqual(payment.status, Payment.Status.CANCELLED)
+        self.assertIsNone(payment.paid_at)
+        self.assertEqual(self.appointment.status, Appointment.Status.CANCELLED)
