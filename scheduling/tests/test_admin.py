@@ -102,6 +102,7 @@ class AppointmentAdminTests(TestCase):
             Appointment,
             self.admin,
         )
+        list_filter.used_parameters = {"period": "today"}
 
         queryset = list_filter.queryset(request, Appointment.objects.all())
 
