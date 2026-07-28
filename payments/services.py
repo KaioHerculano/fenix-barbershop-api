@@ -193,7 +193,7 @@ def process_payment_webhook(payload, headers=None, query_params=None, provider=N
             provider=webhook_result.provider,
             provider_payment_id=webhook_result.provider_payment_id,
         )
-        if webhook_result.paid and payment.status != Payment.Status.PAID:
+        if webhook_result.paid and payment.status == Payment.Status.PENDING:
             payment.status = Payment.Status.PAID
             payment.paid_at = webhook_result.paid_at or timezone.now()
             payment.provider_payload = webhook_result.raw_payload
@@ -206,6 +206,9 @@ def process_payment_webhook(payload, headers=None, query_params=None, provider=N
                 ]
             )
             confirm_paid_appointment(payment.appointment)
+        elif webhook_result.paid and payment.status == Payment.Status.PAID:
+            payment.provider_payload = webhook_result.raw_payload
+            payment.save(update_fields=["provider_payload", "updated_at"])
 
         event.provider_payment_id = webhook_result.provider_payment_id
         event.event_type = webhook_result.event_type
@@ -236,3 +239,10 @@ def confirm_paid_appointment(appointment):
         lambda: send_appointment_confirmation_email.delay(str(appointment.id))
     )
     return appointment
+
+
+def cancel_pending_payments_for_appointment(appointment):
+    return Payment.objects.filter(
+        appointment=appointment,
+        status=Payment.Status.PENDING,
+    ).update(status=Payment.Status.CANCELLED, updated_at=timezone.now())
