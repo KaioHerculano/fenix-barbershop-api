@@ -156,6 +156,8 @@ Resultado: cria ou retorna o pagamento pendente do agendamento autenticado, usan
 
 Quando `PAYMENT_GATEWAY=mercado_pago`, a resposta inclui dados de Pix retornados pelo gateway, como `payment_code`, `qr_code_base64` e `checkout_url`.
 
+Agendamentos cancelados, concluidos, expirados ou que ja possuem pagamento `paid` nao podem gerar novo pagamento.
+
 ## Consultar pagamento
 
 ```http
@@ -169,7 +171,7 @@ Authorization: Bearer customer-access-token
 POST /api/v1/payments/webhook/
 ```
 
-Resultado: processa o evento de forma idempotente. Quando o gateway informa pagamento aprovado, o pagamento vira `paid`, o agendamento vira `confirmed` e o e-mail de confirmacao e disparado.
+Resultado: processa o evento de forma idempotente. Quando o gateway informa pagamento aprovado para um pagamento pendente, o pagamento vira `paid`, o agendamento vira `confirmed` e o e-mail de confirmacao e disparado.
 
 ## Cancelar agendamento
 
@@ -177,6 +179,8 @@ Resultado: processa o evento de forma idempotente. Quando o gateway informa paga
 PATCH /api/v1/companies/{company_slug}/appointments/{appointment_id}/cancel/
 Authorization: Bearer customer-access-token
 ```
+
+Resultado: cancela o agendamento e tambem cancela pagamentos pendentes vinculados a ele. Pagamentos ja pagos nao sao alterados automaticamente.
 
 ## Concluir agendamento e gerar pontos
 
