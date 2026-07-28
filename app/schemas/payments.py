@@ -27,7 +27,8 @@ payment_create_schema = extend_schema(
     summary="Criar pagamento do agendamento",
     description=(
         "Cria ou retorna o pagamento pendente de um agendamento do usuario autenticado. "
-        "Quando PAYMENT_GATEWAY=mercado_pago, cria a cobranca Pix no adapter Mercado Pago."
+        "Quando PAYMENT_GATEWAY=mercado_pago, cria a cobranca Pix no adapter Mercado Pago. "
+        "Agendamentos cancelados, concluidos, expirados ou ja pagos nao podem gerar novo pagamento."
     ),
     parameters=[idempotency_key_header],
     request=PaymentCreateSerializer,
@@ -55,7 +56,8 @@ payment_webhook_schema = extend_schema(
     description=(
         "Recebe eventos do gateway configurado. Para Mercado Pago, valida assinatura "
         "quando MERCADO_PAGO_WEBHOOK_SECRET esta configurado, busca o pagamento no provider "
-        "e processa o evento com idempotencia."
+        "e processa o evento com idempotencia. Eventos de pagamento aprovado confirmam apenas "
+        "agendamentos pendentes."
     ),
     request=PaymentWebhookSerializer,
     auth=[],

@@ -58,6 +58,10 @@ def cancel_appointment(appointment):
     appointment.status = Appointment.Status.CANCELLED
     appointment.cancelled_at = timezone.now()
     appointment.save(update_fields=["status", "cancelled_at", "updated_at"])
+
+    from payments.services import cancel_pending_payments_for_appointment
+
+    cancel_pending_payments_for_appointment(appointment)
     send_appointment_cancelled_email.delay(str(appointment.id))
     return appointment
 

@@ -5,6 +5,7 @@ from django.test import TestCase
 from django.utils import timezone
 from rest_framework.exceptions import ValidationError
 
+from payments.models import Payment
 from scheduling.models import Appointment
 from scheduling.services import (
     cancel_appointment,
@@ -230,6 +231,49 @@ class AppointmentServiceTests(TestCase):
         self.assertEqual(appointment.status, Appointment.Status.CANCELLED)
         self.assertIsNotNone(appointment.cancelled_at)
         self.cancelled_task.assert_called_once_with(str(appointment.id))
+
+    def test_cancel_appointment_cancels_pending_payment(self):
+        appointment = self.fake.appointment(
+            self.company,
+            self.customer,
+            self.barber,
+            self.service,
+            self.appointment_date,
+        )
+        payment = Payment.objects.create(
+            user=self.customer,
+            appointment=appointment,
+            amount=self.service.price,
+            status=Payment.Status.PENDING,
+            idempotency_key="cancel-pending-payment",
+        )
+
+        cancel_appointment(appointment)
+
+        payment.refresh_from_db()
+        self.assertEqual(payment.status, Payment.Status.CANCELLED)
+
+    def test_cancel_appointment_keeps_paid_payment(self):
+        appointment = self.fake.appointment(
+            self.company,
+            self.customer,
+            self.barber,
+            self.service,
+            self.appointment_date,
+        )
+        payment = Payment.objects.create(
+            user=self.customer,
+            appointment=appointment,
+            amount=self.service.price,
+            status=Payment.Status.PAID,
+            idempotency_key="keep-paid-payment",
+            paid_at=timezone.now(),
+        )
+
+        cancel_appointment(appointment)
+
+        payment.refresh_from_db()
+        self.assertEqual(payment.status, Payment.Status.PAID)
 
     def test_rejects_repeated_cancellation(self):
         appointment = self.fake.appointment(
